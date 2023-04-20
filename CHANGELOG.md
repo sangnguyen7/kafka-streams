@@ -1,5 +1,8 @@
 # kafka-streams CHANGELOG
 
+# 2023-04-20, Version 5.0.1
+* upgraded dependencies
+
 ## 2020-02-24, Version 5.0.0
 
 * upgraded dependencies
