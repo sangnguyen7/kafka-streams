@@ -45,9 +45,8 @@ describe("E2E INT", () => {
   it("should be able to produce to a topic via stream", done => {
 
     const stream = kafkaStreams.getKStream();
+    stream.to(topic);
     done();
-    //stream.to(topic);
-
     //let count = 0;
     // stream.createAndSetProduceHandler().on("delivered", message => {
     //   console.log(message.value);
