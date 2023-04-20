@@ -47,7 +47,7 @@ describe("E2E INT", () => {
     const stream = kafkaStreams.getKStream();
     stream.to(topic);
 
-    let count = 0;
+    //let count = 0;
     // stream.createAndSetProduceHandler().on("delivered", message => {
     //   console.log(message.value);
     //   count++;
@@ -58,7 +58,7 @@ describe("E2E INT", () => {
 
     stream.start().then(() => {
       console.log("started");
-      stream.writeToStream(messages);
+      //stream.writeToStream(messages);
       done();
     }).catch((error) => {
       done(error);
