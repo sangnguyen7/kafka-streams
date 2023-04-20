@@ -35,7 +35,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/nodefluent/kafka-streams.git"
+        "url": "git+https://github.com/sangnguyen7/kafka-streams.git"
     },
     "keywords": [
         "kafka-streams",
@@ -58,9 +58,9 @@
     "author": "Christian Froehlingsdorf <chris@5cf.de>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/nodefluent/kafka-streams/issues"
+        "url": "https://github.com/sangnguyen7/kafka-streams/issues"
     },
-    "homepage": "https://github.com/nodefluent/kafka-streams#readme",
+    "homepage": "https://github.com/sangnguyen7/kafka-streams#readme",
     "dependencies": {
         "bluebird": "~3.7.2",
         "debug": "~4.1.1",
