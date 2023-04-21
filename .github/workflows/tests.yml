@@ -23,11 +23,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install -g yarn
       - run: mkdir /tmp/kafka-data && mkdir /tmp/kafka-data/data && mkdir /tmp/kafka-data/logs && chmod -R 777 /tmp/kafka-data
       - run: ./kafka-setup/generate-certs.sh
       - name: Start Docker containers for Zookeeper, Kafka and Schema Registry
         run: cd kafka-setup && docker-compose up -d
-      - run: yarn && yarn build
-      - run: yarn test-unit
-      - run: yarn test-int
+      - run: npm install && npm run build
+      - run: npm run test-unit
+      - run: npm run test-int
