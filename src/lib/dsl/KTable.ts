@@ -1,6 +1,5 @@
 import { EventEmitter } from "events";
 import * as most from "most";
-import { Promise } from "bluebird";
 import { StreamDSL } from "./StreamDSL";
 import { LastState } from "../actions";
 import { StorageMerger } from "../StorageMerger";
@@ -29,7 +28,7 @@ export class KTable extends StreamDSL {
      * @param {KafkaClient} kafka
      * @param {boolean} isClone
      */
-  constructor(topicName, keyMapETL, storage = null, kafka = null, isClone = false) {
+  constructor (topicName, keyMapETL, storage = null, kafka = null, isClone = false) {
     super(topicName, storage, kafka, isClone);
 
     //KTable only works on {key, value} payloads
@@ -64,7 +63,7 @@ export class KTable extends StreamDSL {
      * @param {boolean} withBackPressure
      * @param {Object} outputKafkaConfig
      */
-  start(kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
+  start (kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
 
     if (kafkaReadyCallback && typeof kafkaReadyCallback === "object" && arguments.length < 2) {
       return new Promise((resolve, reject) => {
@@ -81,7 +80,7 @@ export class KTable extends StreamDSL {
     return this._start(kafkaReadyCallback, kafkaErrorCallback, withBackPressure, outputKafkaConfig);
   }
 
-  _start(kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
+  _start (kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
 
     if (this.started) {
       throw new Error("this KTable is already started.");
@@ -160,7 +159,7 @@ export class KTable extends StreamDSL {
      * @param {StreamDSL} stream
      * @param {string} key
      */
-  innerJoin(stream, key = "key") {
+  innerJoin (stream, key = "key") {
     throw new Error("not implemented yet."); //TODO implement
   }
 
@@ -169,7 +168,7 @@ export class KTable extends StreamDSL {
      * If only one source contains a key, the other is null
      * @param {StreamDSL} stream
      */
-  outerJoin(stream) {
+  outerJoin (stream) {
     throw new Error("not implemented yet."); //TODO implement
   }
 
@@ -178,7 +177,7 @@ export class KTable extends StreamDSL {
      * If the other source does not have a value for a given key, it is set to null
      * @param {StreamDSL} stream
      */
-  leftJoin(stream) {
+  leftJoin (stream) {
     throw new Error("not implemented yet."); //TODO implement
   }
 
@@ -186,11 +185,11 @@ export class KTable extends StreamDSL {
      * write message to the internal stream
      * @param {any} message
      */
-  writeToTableStream(message) {
+  writeToTableStream (message) {
     this._tee.emit(MESSAGE, message);
   }
 
-  finalise(buildReadyCallback = null) {
+  finalise (buildReadyCallback = null) {
 
     if (this.finalised) {
       throw new Error("this KTable has already been finalised.");
@@ -214,7 +213,7 @@ export class KTable extends StreamDSL {
     this.finalised = true;
   }
 
-  _bindToTableStream() {
+  _bindToTableStream () {
     this.stream$ = most.merge(this.stream$, most.fromEvent(MESSAGE, this._tee));
   }
 
@@ -224,7 +223,7 @@ export class KTable extends StreamDSL {
      * @param {function} finishedCallback
      * @returns {KTable}
      */
-  consumeUntilMs(ms = 1000, finishedCallback = null) {
+  consumeUntilMs (ms = 1000, finishedCallback = null) {
 
     super.multicast();
     // TODO we passing undefined here. Is that right?
@@ -243,7 +242,7 @@ export class KTable extends StreamDSL {
      * @param {function} finishedCallback
      * @returns {KTable}
      */
-  consumeUntilCount(count = 1000, finishedCallback = null) {
+  consumeUntilCount (count = 1000, finishedCallback = null) {
 
     super.multicast();
     this.stream$ = this.stream$.take(count);
@@ -259,7 +258,7 @@ export class KTable extends StreamDSL {
      * consume messages until latest offset of topic
      * @param {function} finishedCallback
      */
-  consumeUntilLatestOffset(finishedCallback = null) {
+  consumeUntilLatestOffset (finishedCallback = null) {
 
     throw new Error("not implemented yet."); //TODO implement
 
@@ -275,7 +274,7 @@ export class KTable extends StreamDSL {
      * returns the state of the internal KStorage
      * @returns {Promise<object>}
      */
-  getTable() {
+  getTable () {
     return this.storage.getState();
   }
 
@@ -284,7 +283,7 @@ export class KTable extends StreamDSL {
      * to the stream, every observer will receive
      * the content as KV {key, value} object
      */
-  replay() {
+  replay () {
     Object.keys(this.storage.state).forEach(key => {
 
       const message = {
@@ -304,7 +303,7 @@ export class KTable extends StreamDSL {
      * @param {StreamDSL} stream
      * @returns {Promise.<KTable>}
      */
-  merge(stream) {
+  merge (stream) {
 
     if (!(stream instanceof StreamDSL)) {
       throw new Error("stream has to be an instance of KStream or KTable.");
@@ -319,7 +318,7 @@ export class KTable extends StreamDSL {
     });
   }
 
-  _cloneWith(newStream$, storageState = {}) {
+  _cloneWith (newStream$, storageState = {}) {
 
     const kafkaStreams = this._kafkaStreams;
     if (!kafkaStreams) {
@@ -344,7 +343,7 @@ export class KTable extends StreamDSL {
      * using this function
      * @returns {Promise.<KTable>}
      */
-  clone() {
+  clone () {
     const newStream$ = this.stream$.tap(NOOP);
     return this._cloneWith(newStream$);
   }
@@ -355,7 +354,7 @@ export class KTable extends StreamDSL {
      * as well as KStorage connections
      * @returns {Promise.<boolean>}
      */
-  close() {
+  close () {
     this.stream$ = this.stream$.take(0);
     this.stream$ = null;
     this.kafka.close();
