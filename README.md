@@ -4,7 +4,7 @@
 [![npm version](https://badge.fury.io/js/kafka-streams.svg)](https://badge.fury.io/js/kafka-streams)
 
 ```
-// suggested Node.js version: v12.16.1
+// suggested Node.js version: v18.12.1
 npm install --save kafka-streams
 ```
 

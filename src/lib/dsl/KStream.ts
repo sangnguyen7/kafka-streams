@@ -1,13 +1,10 @@
-import { Promise } from "bluebird";
 import { async as createSubject } from "most-subject";
-import * as lodashClone from "lodash.clone";
-import * as lodashCloneDeep from "lodash.clonedeep";
+import _ from "lodash";
 import { StreamDSL } from "./StreamDSL";
 import { messageProduceHandle } from "../messageProduceHandle";
 import { Window } from "../actions";
 
 const NOOP = () => { };
-
 /**
  * change-log representation of a stream
  */
@@ -23,7 +20,7 @@ export class KStream extends StreamDSL {
      * @param {KafkaClient} kafka
      * @param {boolean} isClone
      */
-  constructor(topicName, storage = null, kafka = null, isClone = false) {
+  constructor (topicName, storage = null, kafka = null, isClone = false) {
     super(topicName, storage, kafka, isClone);
 
     this.started = false;
@@ -44,7 +41,7 @@ export class KStream extends StreamDSL {
    * @param {boolean} withBackPressure
    * @param {Object} outputKafkaConfig
    */
-  start(kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
+  start (kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
 
     if (kafkaReadyCallback && typeof kafkaReadyCallback === "object" && arguments.length < 2) {
       return new Promise((resolve, reject) => {
@@ -61,7 +58,7 @@ export class KStream extends StreamDSL {
     return this._start(kafkaReadyCallback, kafkaErrorCallback, withBackPressure, outputKafkaConfig);
   }
 
-  _start(kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
+  _start (kafkaReadyCallback = null, kafkaErrorCallback = null, withBackPressure = false, outputKafkaConfig = null) {
 
     if (this.started) {
       throw new Error("this KStream is already started.");
@@ -134,7 +131,7 @@ export class KStream extends StreamDSL {
      * @param {function} combine
      * @returns {KStream}
      */
-  innerJoin(stream, key = "key", windowed = false, combine = null) {
+  innerJoin (stream, key = "key", windowed = false, combine = null) {
 
     let join$ = null;
     if (!windowed) {
@@ -146,7 +143,7 @@ export class KStream extends StreamDSL {
     return this._cloneWith(join$);
   }
 
-  _innerJoinNoWindow(stream, key, combine) {
+  _innerJoinNoWindow (stream, key, combine) {
 
     const existingKeyFilter = (event) => {
       return !!event && typeof event === "object" && typeof event[key] !== "undefined";
@@ -169,7 +166,7 @@ export class KStream extends StreamDSL {
      * If only one source contains a key, the other is null
      * @param {StreamDSL} stream
      */
-  outerJoin(stream) {
+  outerJoin (stream) {
     throw new Error("not implemented yet."); //TODO implement
   }
 
@@ -178,7 +175,7 @@ export class KStream extends StreamDSL {
      * If the other source does not have a value for a given key, it is set to null
      * @param {StreamDSL} stream
      */
-  leftJoin(stream) {
+  leftJoin (stream) {
     throw new Error("not implemented yet."); //TODO implement
   }
 
@@ -190,7 +187,7 @@ export class KStream extends StreamDSL {
      * @param {StreamDSL} stream
      * @returns {KStream}
      */
-  merge(stream) {
+  merge (stream) {
 
     if (!(stream instanceof StreamDSL)) {
       throw new Error("stream has to be an instance of KStream or KTable.");
@@ -202,7 +199,7 @@ export class KStream extends StreamDSL {
     return this._cloneWith(newStream$);
   }
 
-  _cloneWith(newStream$) {
+  _cloneWith (newStream$) {
 
     const kafkaStreams = this._kafkaStreams;
     if (!kafkaStreams) {
@@ -226,7 +223,7 @@ export class KStream extends StreamDSL {
      * @param {Object} most.js stream
      * @returns {KStream}
      */
-  fromMost(stream$) {
+  fromMost (stream$) {
     return this._cloneWith(stream$);
   }
 
@@ -238,7 +235,7 @@ export class KStream extends StreamDSL {
      * @param {boolean} cloneDeep - if events in the stream should be cloned deeply
      * @returns {KStream}
      */
-  clone(cloneEvents = false, cloneDeep = false) {
+  clone (cloneEvents = false, cloneDeep = false) {
 
     let clone$ = this.stream$.multicast();
 
@@ -246,10 +243,10 @@ export class KStream extends StreamDSL {
       clone$ = clone$.map((event) => {
 
         if (!cloneDeep) {
-          return lodashClone(event);
+          return _.clone(event);
         }
 
-        return lodashCloneDeep(event);
+        return _.cloneDeep(event);
       });
     }
 
@@ -267,7 +264,7 @@ export class KStream extends StreamDSL {
      * @param {Array<Function>} preds
      * @returns {Array<KStream>}
      */
-  branch(preds = []) {
+  branch (preds = []) {
 
     if (!Array.isArray(preds)) {
       throw new Error("branch predicates must be an array.");
@@ -302,7 +299,7 @@ export class KStream extends StreamDSL {
      * @param {boolean} collect - if events should be collected first before publishing to result stream
      * @returns {{window: *, abort: abort, stream: *}}
      */
-  window(from, to, etl = null, encapsulated = true, collect = true) {
+  window (from, to, etl = null, encapsulated = true, collect = true) {
 
     if (typeof from !== "number" || typeof to !== "number") {
       throw new Error("from & to should be unix epoch ms times.");
@@ -323,7 +320,7 @@ export class KStream extends StreamDSL {
 
     let aborted = false;
     const abort$ = createSubject();
-    function abort() {
+    function abort () {
 
       if (aborted) {
         return;
@@ -361,7 +358,7 @@ export class KStream extends StreamDSL {
      * as well as KStorage connections
      * @returns {Promise.<boolean>}
      */
-  close() {
+  close () {
     this.stream$ = this.stream$.take(0);
     this.stream$ = null;
     this.kafka.close();

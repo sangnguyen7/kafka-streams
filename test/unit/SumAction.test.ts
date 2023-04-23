@@ -1,60 +1,61 @@
-import * as assert from "assert";
-import * as proxyquire from "proxyquire";
-import KafkaFactoryStub from "../utils/KafkaFactoryStub";
-
-const { KafkaStreams } = proxyquire("../../src/lib/KafkaStreams", {
-  "./KafkaFactory": { KafkaFactory: KafkaFactoryStub }
-});
+import * as KafkaFactoryModule from "../../src/lib/KafkaFactory";
+import { KafkaStreams } from '../../src/lib/KafkaStreams';
+import KafkaFactoryStub from '../utils/KafkaFactoryStub';
 
 describe("Sum-Action UNIT", function () {
+    afterEach(() => {
+        // restore the spy created with spyOn
+        jest.restoreAllMocks();
+    });
+    it("should be able to sum values", function (done) {
+        jest.spyOn(KafkaFactoryModule, 'KafkaFactory').mockImplementation(((config, batchOptions = undefined) => {
+            return new KafkaFactoryStub();
+        }) as any);
+        function etl_ValueFlatten (value) {
+            return value.toLowerCase().split(" ");
+        }
 
-  it("should be able to sum values", function (done) {
+        function etl_KeyValueMapper (elements) {
+            return {
+                key: elements[0],
+                value: elements[1]
+            };
+        }
 
-    function etl_ValueFlatten(value) {
-      return value.toLowerCase().split(" ");
-    }
+        const streams = new KafkaStreams({});
+        const factory = streams.factory;
+        const source = streams.getKStream("sum-action-unit");
 
-    function etl_KeyValueMapper(elements) {
-      return {
-        key: elements[0],
-        value: elements[1]
-      };
-    }
+        source
+            .map(etl_ValueFlatten)
+            .map(etl_KeyValueMapper)
+            .take(11)
+            .sumByKey("key", "value", true)
+            .skip(7)
+            .map(kv => kv.sum)
+            .to("streams-wordcount-output");
 
-    const streams = new KafkaStreams({});
-    const factory = streams.factory;
-    const source = streams.getKStream("sum-action-unit");
+        source.start();
 
-    source
-      .map(etl_ValueFlatten)
-      .map(etl_KeyValueMapper)
-      .take(11)
-      .sumByKey("key", "value", "sum")
-      .skip(7)
-      .map(kv => kv.sum)
-      .to("streams-wordcount-output");
+        factory.lastConsumer.fakeIncomingMessages([
+            "abc 1", "def 1", "abc 3", "fus eins,", "def 4",
+            "abc 12", "fus zwei,", "def 100", "abc 50", "ida 0",
+            "fus drei"
+        ]); // abc 66, def 105, ida 0, fus eins,zwei,drei
 
-    source.start();
+        setTimeout(() => {
+            const messages = factory.lastProducer.producedMessages;
+            console.log(messages);
 
-    factory.lastConsumer.fakeIncomingMessages([
-      "abc 1", "def 1", "abc 3", "fus eins,", "def 4",
-      "abc 12", "fus zwei,", "def 100", "abc 50", "ida 0",
-      "fus drei"
-    ]); // abc 66, def 105, ida 0, fus eins,zwei,drei
+            const data = source.storage.state;
 
-    setTimeout(() => {
-      const messages = factory.lastProducer.producedMessages;
-      console.log(messages);
+            expect(data.abc).toBe(66);
+            expect(data.def).toBe(105);
+            expect(data.ida).toBe(0);
+            expect(data.fus).toBe("eins,zwei,drei");
 
-      const data = source.storage.state;
-
-      assert.equal(data.abc, 66);
-      assert.equal(data.def, 105);
-      assert.equal(data.ida, 0);
-      assert.equal(data.fus, "eins,zwei,drei");
-
-      streams.closeAll();
-      done();
-    }, 5);
-  });
+            streams.closeAll();
+            done();
+        }, 5);
+    });
 });

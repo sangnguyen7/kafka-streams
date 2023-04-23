@@ -1,13 +1,26 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2016",
-    "allowJs": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "alwaysStrict": true
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "noImplicitAny": false,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "strictNullChecks": false,
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    }
   },
   "include": [
-    "./src/**/*"
+    "src/**/*"
   ]
 }

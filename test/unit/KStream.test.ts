@@ -1,73 +1,74 @@
-import * as assert from "assert";
-import * as proxyquire from "proxyquire";
-import KafkaFactoryStub from "../utils/KafkaFactoryStub";
+import * as KafkaFactoryModule from "../../src/lib/KafkaFactory";
+import { KafkaStreams } from '../../src/lib/KafkaStreams';
+import KafkaFactoryStub from '../utils/KafkaFactoryStub';
 
-const { KafkaStreams } = proxyquire("../../src/lib/KafkaStreams", {
-  "./KafkaFactory": { KafkaFactory: KafkaFactoryStub }
-});
+describe("KStream UNIT", () => {
 
-describe("KStream UNIT", function () {
+    describe("KStream branching", () => {
+        afterEach(() => {
+            // restore the spy created with spyOn
+            jest.restoreAllMocks();
+        });
+        it("should be able to branch kstream into kstreams", (done) => {
+            jest.spyOn(KafkaFactoryModule, 'KafkaFactory').mockImplementation(((config, batchOptions = undefined) => {
+                return new KafkaFactoryStub();
+            }) as any);
+            const streams = new KafkaStreams({});
 
-  describe("KStream branching", function () {
+            const parent = streams.getKStream(null);
 
-    it("should be able to branch kstream into kstreams", function (done) {
+            const [
+                streamA,
+                streamB,
+                streamTrue
+            ] = parent.branch([
+                (message) => message.startsWith("a"),
+                (message) => message.startsWith("b"),
+                (message) => !!message
+            ]);
 
-      const streams = new KafkaStreams({});
+            const outputA = [];
+            streamA.forEach((a) => outputA.push(a));
 
-      const parent = streams.getKStream(null);
+            const outputB = [];
+            streamB.forEach((b) => outputB.push(b));
 
-      const [
-        streamA,
-        streamB,
-        streamTrue
-      ] = parent.branch([
-        (message) => message.startsWith("a"),
-        (message) => message.startsWith("b"),
-        (message) => !!message
-      ]);
+            const outputTrue = [];
+            streamTrue.forEach((t) => outputTrue.push(t));
 
-      const outputA = [];
-      streamA.forEach((a) => outputA.push(a));
+            const outputParent = [];
+            parent.forEach((p) => outputParent.push(p));
 
-      const outputB = [];
-      streamB.forEach((b) => outputB.push(b));
+            const parentMessages = [
+                "albert",
+                "bunert",
+                "brabert",
+                "anna",
+                "anne",
+                "ansgar",
+                "carsten",
+                "beter",
+                "christina",
+                "bolf",
+                "achim"
+            ];
 
-      const outputTrue = [];
-      streamTrue.forEach((t) => outputTrue.push(t));
+            setTimeout(() => {
+                parent.writeToStream("alina");
+                parent.writeToStream("bela");
+            }, 15);
 
-      const outputParent = [];
-      parent.forEach((p) => outputParent.push(p));
+            parentMessages.forEach(m => parent.writeToStream(m));
 
-      const parentMessages = [
-        "albert",
-        "bunert",
-        "brabert",
-        "anna",
-        "anne",
-        "ansgar",
-        "carsten",
-        "beter",
-        "christina",
-        "bolf",
-        "achim"
-      ];
+            setTimeout(() => {
 
-      setTimeout(() => {
-        parent.writeToStream("alina");
-        parent.writeToStream("bela");
-      }, 15);
+                expect(outputA.length).toBe(6);
+                expect(outputB.length).toBe(5);
+                expect(outputTrue.length).toBe(parentMessages.length + 2);
+                expect(outputParent.length).toBe(parentMessages.length + 2);
 
-      parentMessages.forEach(m => parent.writeToStream(m));
-
-      setTimeout(() => {
-
-        assert.equal(outputA.length, 6);
-        assert.equal(outputB.length, 5);
-        assert.equal(outputTrue.length, parentMessages.length + 2);
-        assert.equal(outputParent.length, parentMessages.length + 2);
-
-        done();
-      }, 20);
+                done();
+            }, 20);
+        });
     });
-  });
 });

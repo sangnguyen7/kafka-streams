@@ -13,18 +13,9 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
   ],
   "rules": {
-    "indent": [
-      2, 2, {
-        "SwitchCase": 1
-      }
-    ],
     "linebreak-style": [
       "error",
       "unix"
-    ],
-    "quotes": [
-      "error",
-      "double"
     ],
     "semi": [
       "error",

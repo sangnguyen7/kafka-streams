@@ -1,7 +1,6 @@
 import { EventEmitter } from "events";
 import * as most from "most";
 import { Observable, Subscriber as Observer, Subscription } from "most";
-import { Promise } from "bluebird";
 import { v4 as uuidv4 } from "uuid";
 import debugFactory from "debug";
 const debug = debugFactory("kafka-streams:streamdsl");
@@ -44,7 +43,7 @@ export class StreamDSL implements Observable<any> {
      * @param {KafkaClient} kafka
      * @param {boolean} isClone
      */
-  constructor(topicName, storage = null, kafka = null, isClone = false) {
+  constructor (topicName, storage = null, kafka = null, isClone = false) {
 
     debug("stream-dsl from clone", isClone, "for", topicName);
 
@@ -97,7 +96,7 @@ export class StreamDSL implements Observable<any> {
   /**
      * dummy, should be overwritten
      */
-  start() {
+  start () {
     return Promise.reject("When inherting StreamDSL, the start method should be overwritten with connector logic.");
   }
 
@@ -106,7 +105,7 @@ export class StreamDSL implements Observable<any> {
      * about the internal kafka clients
      * @returns {object}
      */
-  getStats() {
+  getStats () {
     return this.kafka ? this.kafka.getStats() : null;
   }
 
@@ -114,7 +113,7 @@ export class StreamDSL implements Observable<any> {
      * returns the internal KStorage instance
      * @returns {KStorage}
      */
-  getStorage() {
+  getStorage () {
     return this.storage;
   }
 
@@ -123,7 +122,7 @@ export class StreamDSL implements Observable<any> {
      * to the internal stream$
      * @param message {Object|Array<Object>}
      */
-  writeToStream(message) {
+  writeToStream (message) {
 
     if (!Array.isArray(message)) {
       return this._ee.emit("message", message);
@@ -138,7 +137,7 @@ export class StreamDSL implements Observable<any> {
      * returns the internal most.js stream
      * @returns {Object} most.js stream
      */
-  getMost() {
+  getMost () {
     return this.stream$;
   }
 
@@ -148,7 +147,7 @@ export class StreamDSL implements Observable<any> {
      * @param array
      * @returns {Stream<any>}
      */
-  getNewMostFrom(array = []) {
+  getNewMostFrom (array = []) {
     return most.from(array);
   }
 
@@ -158,7 +157,7 @@ export class StreamDSL implements Observable<any> {
      * and replaces the internal stream with the merged new stream
      * @param newStream$
      */
-  replaceInternalObservable(newStream$) {
+  replaceInternalObservable (newStream$) {
     this._ee.removeAllListeners(MESSAGE);
     this._ee = new EventEmitter();
     this.stream$ = most.merge(newStream$, most.fromEvent(MESSAGE, this._ee));
@@ -170,7 +169,7 @@ export class StreamDSL implements Observable<any> {
      * events: produced, delivered
      * @param handler {module:events.internal}
      */
-  setProduceHandler(handler) {
+  setProduceHandler (handler) {
 
     if (!handler || !(handler instanceof EventEmitter)) {
       throw new Error("ProduceHandler must be an instance of EventEmitter (events).");
@@ -184,7 +183,7 @@ export class StreamDSL implements Observable<any> {
      * for this stream instance
      * @returns {module:events.internal}
      */
-  createAndSetProduceHandler() {
+  createAndSetProduceHandler () {
     const ee = new EventEmitter();
     this.setProduceHandler(ee);
     return ee;
@@ -194,7 +193,7 @@ export class StreamDSL implements Observable<any> {
      * overwrites the internal kafkaStreams reference
      * @param reference
      */
-  setKafkaStreamsReference(reference) {
+  setKafkaStreamsReference (reference) {
     this._kafkaStreams = reference;
   }
 
@@ -204,7 +203,7 @@ export class StreamDSL implements Observable<any> {
    * @param {Observer} observer
    * @returns {Function} Unsubscribe function
    */
-  subscribe(observer: Observer<any>): Subscription<any> {
+  subscribe (observer: Observer<any>): Subscription<any> {
     return this.stream$.subscribe(observer);
   }
 
@@ -221,7 +220,7 @@ export class StreamDSL implements Observable<any> {
      * @param topicName {string|Array<string>}
      * @returns {StreamDSL}
      */
-  from(topicName) {
+  from (topicName) {
 
     if (!Array.isArray(topicName)) {
       topicName = [topicName];
@@ -244,7 +243,7 @@ export class StreamDSL implements Observable<any> {
      * @param etl
      * @returns {StreamDSL}
      */
-  awaitPromises(etl) {
+  awaitPromises (etl) {
     this.stream$ = this.stream$.awaitPromises(etl);
     return this;
   }
@@ -255,7 +254,7 @@ export class StreamDSL implements Observable<any> {
      * @param etl
      * @returns {StreamDSL}
      */
-  map(etl) {
+  map (etl) {
     this.stream$ = this.stream$.map(etl);
     return this;
   }
@@ -267,7 +266,7 @@ export class StreamDSL implements Observable<any> {
      * @param etl
      * @returns {StreamDSL}
      */
-  asyncMap(etl) {
+  asyncMap (etl) {
     this.stream$ = this.stream$.flatMap(value => most.fromPromise(etl(value)));
     return this;
   }
@@ -279,7 +278,7 @@ export class StreamDSL implements Observable<any> {
      * @param etl
      * @returns {StreamDSL}
      */
-  concatMap(etl) {
+  concatMap (etl) {
     this.stream$ = this.stream$.concatMap(etl);
     return this;
   }
@@ -292,7 +291,7 @@ export class StreamDSL implements Observable<any> {
      * @param eff
      * @returns Promise{*}
      */
-  forEach(eff) {
+  forEach (eff) {
     return this.stream$.forEach(eff);
   }
 
@@ -303,7 +302,7 @@ export class StreamDSL implements Observable<any> {
      * @param callback
      * @returns {StreamDSL}
      */
-  chainForEach(eff, callback = null) {
+  chainForEach (eff, callback = null) {
     this.stream$ = this.stream$.multicast();
     this.stream$.forEach(eff).then(r => {
       if (callback) {
@@ -324,7 +323,7 @@ export class StreamDSL implements Observable<any> {
      * errors in eff will break stream
      * @param eff
      */
-  tap(eff) {
+  tap (eff) {
     this.stream$ = this.stream$.tap(eff);
     return this;
   }
@@ -336,7 +335,7 @@ export class StreamDSL implements Observable<any> {
      * @param pred
      * @returns {StreamDSL}
      */
-  filter(pred) {
+  filter (pred) {
     this.stream$ = this.stream$.filter(pred);
     return this;
   }
@@ -346,7 +345,7 @@ export class StreamDSL implements Observable<any> {
      * be aware that this might take a lot of memory
      * @returns {StreamDSL}
      */
-  skipRepeats() {
+  skipRepeats () {
     this.stream$ = this.stream$.skipRepeats();
     return this;
   }
@@ -357,7 +356,7 @@ export class StreamDSL implements Observable<any> {
      * @param equals
      * @returns {StreamDSL}
      */
-  skipRepeatsWith(equals) {
+  skipRepeatsWith (equals) {
     this.stream$ = this.stream$.skipRepeatsWith(equals);
     return this;
   }
@@ -367,7 +366,7 @@ export class StreamDSL implements Observable<any> {
      * @param count
      * @returns {StreamDSL}
      */
-  skip(count) {
+  skip (count) {
     this.stream$ = this.stream$.skip(count);
     return this;
   }
@@ -378,12 +377,12 @@ export class StreamDSL implements Observable<any> {
      * @param count
      * @returns {StreamDSL}
      */
-  take(count) {
+  take (count) {
     this.stream$ = this.stream$.take(count);
     return this;
   }
 
-  multicast() {
+  multicast () {
     this.stream$ = this.stream$.multicast();
     return this;
   }
@@ -396,7 +395,7 @@ export class StreamDSL implements Observable<any> {
      * @param delimiter
      * @returns {StreamDSL}
      */
-  mapStringToArray(delimiter = " ") {
+  mapStringToArray (delimiter = " ") {
 
     return this.map(element => {
 
@@ -417,7 +416,7 @@ export class StreamDSL implements Observable<any> {
      * @param valueIndex
      * @returns {StreamDSL}
      */
-  mapArrayToKV(keyIndex = 0, valueIndex = 1) {
+  mapArrayToKV (keyIndex = 0, valueIndex = 1) {
 
     return this.map(element => {
 
@@ -442,7 +441,7 @@ export class StreamDSL implements Observable<any> {
      * @param valueIndex
      * @returns {StreamDSL}
      */
-  mapStringToKV(delimiter = " ", keyIndex = 0, valueIndex = 1) {
+  mapStringToKV (delimiter = " ", keyIndex = 0, valueIndex = 1) {
     this.mapStringToArray(delimiter);
     this.mapArrayToKV(keyIndex, valueIndex);
     return this;
@@ -454,7 +453,7 @@ export class StreamDSL implements Observable<any> {
      * (if parsing fails, the error object will be returned)
      * @returns {StreamDSL}
      */
-  mapJSONParse() {
+  mapJSONParse () {
 
     return this.map(string => {
 
@@ -475,7 +474,7 @@ export class StreamDSL implements Observable<any> {
      * if its type is object
      * @returns {StreamDSL}
      */
-  mapStringify() {
+  mapStringify () {
 
     return this.map(object => {
 
@@ -492,7 +491,7 @@ export class StreamDSL implements Observable<any> {
      * to an object event with a string key field
      * @returns {StreamDSL}
      */
-  mapBufferKeyToString() {
+  mapBufferKeyToString () {
 
     return this.map(object => {
 
@@ -522,7 +521,7 @@ export class StreamDSL implements Observable<any> {
      * to an object event with a string value field
      * @returns {StreamDSL}
      */
-  mapBufferValueToString() {
+  mapBufferValueToString () {
 
     return this.map(object => {
 
@@ -552,7 +551,7 @@ export class StreamDSL implements Observable<any> {
      * to an object event with (parsed) object value field
      * @returns {StreamDSL}
      */
-  mapStringValueToJSONObject() {
+  mapStringValueToJSONObject () {
 
     return this.map(object => {
 
@@ -584,7 +583,7 @@ export class StreamDSL implements Observable<any> {
      * buffer value -> string -> object
      * @returns {StreamDSL}
      */
-  mapJSONConvenience() {
+  mapJSONConvenience () {
     return this
       .mapBufferKeyToString()
       .mapBufferValueToString()
@@ -597,7 +596,7 @@ export class StreamDSL implements Observable<any> {
      * @param topic - optional
      * @returns {StreamDSL}
      */
-  wrapAsKafkaValue(topic = undefined) {
+  wrapAsKafkaValue (topic = undefined) {
 
     return this.map(any => {
       return {
@@ -616,7 +615,7 @@ export class StreamDSL implements Observable<any> {
      * right to its payload value
      * @returns {StreamDSL}
      */
-  mapWrapKafkaValue() {
+  mapWrapKafkaValue () {
 
     return this.map(message => {
 
@@ -638,7 +637,7 @@ export class StreamDSL implements Observable<any> {
      * @param {function} callback
      * @returns {StreamDSL}
      */
-  atThroughput(count = 1, callback) {
+  atThroughput (count = 1, callback) {
 
     let countState = 0;
     this.tap(message => {
@@ -665,7 +664,7 @@ export class StreamDSL implements Observable<any> {
      * @param getId
      * @returns {StreamDSL}
      */
-  mapToFormat(type = "unknown-publish", getId = null) {
+  mapToFormat (type = "unknown-publish", getId = null) {
 
     this.map(message => {
 
@@ -687,7 +686,7 @@ export class StreamDSL implements Observable<any> {
      * {value: "{ payload: {} }" -> {}
      * @returns {StreamDSL}
      */
-  mapFromFormat() {
+  mapFromFormat () {
 
     this.map(message => {
 
@@ -715,7 +714,7 @@ export class StreamDSL implements Observable<any> {
     * @param etl
     * @returns {StreamDSL}
     */
-  timestamp(etl) {
+  timestamp (etl) {
 
     if (!etl) {
       this.stream$ = this.stream$.timestamp();
@@ -737,7 +736,7 @@ export class StreamDSL implements Observable<any> {
      * @param substitute
      * @returns {StreamDSL}
      */
-  constant(substitute) {
+  constant (substitute) {
     this.stream$ = this.stream$.constant(substitute);
     return this;
   }
@@ -749,7 +748,7 @@ export class StreamDSL implements Observable<any> {
      * @param initial
      * @returns {StreamDSL}
      */
-  scan(eff, initial) {
+  scan (eff, initial) {
     this.stream$ = this.stream$.scan(eff, initial);
     return this;
   }
@@ -760,7 +759,7 @@ export class StreamDSL implements Observable<any> {
      * @param end
      * @returns {StreamDSL}
      */
-  slice(start, end) {
+  slice (start, end) {
     this.stream$ = this.stream$.slice(start, end);
     return this;
   }
@@ -772,7 +771,7 @@ export class StreamDSL implements Observable<any> {
      * @param pred
      * @returns {StreamDSL}
      */
-  takeWhile(pred) {
+  takeWhile (pred) {
     this.stream$ = this.stream$.takeWhile(pred);
     return this;
   }
@@ -783,7 +782,7 @@ export class StreamDSL implements Observable<any> {
      * @param pred
      * @returns {StreamDSL}
      */
-  skipWhile(pred) {
+  skipWhile (pred) {
     this.stream$ = this.stream$.skipWhile(pred);
     return this;
   }
@@ -794,7 +793,7 @@ export class StreamDSL implements Observable<any> {
      * @param signal$
      * @returns {StreamDSL}
      */
-  until(signal$) {
+  until (signal$) {
     this.stream$ = this.stream$.until(signal$);
     return this;
   }
@@ -805,7 +804,7 @@ export class StreamDSL implements Observable<any> {
      * @param signal$
      * @returns {StreamDSL}
      */
-  since(signal$) {
+  since (signal$) {
     this.stream$ = this.stream$.since(signal$);
     return this;
   }
@@ -815,7 +814,7 @@ export class StreamDSL implements Observable<any> {
      * Note that f must return a (most.js) stream.
      * @param f - function (must return a most stream)
      */
-  continueWith(f) {
+  continueWith (f) {
     this.stream$ = this.stream$.continueWith(f);
     return this;
   }
@@ -827,7 +826,7 @@ export class StreamDSL implements Observable<any> {
      * @param initial
      * @returns Promise{*}
      */
-  reduce(eff, initial) {
+  reduce (eff, initial) {
     return this.stream$.reduce(eff, initial);
   }
 
@@ -839,7 +838,7 @@ export class StreamDSL implements Observable<any> {
      * @param callback
      * @returns {StreamDSL}
      */
-  chainReduce(eff, initial, callback) {
+  chainReduce (eff, initial, callback) {
     this.stream$ = this.stream$.multicast();
     this.stream$.reduce(eff, initial).then(r => {
       if (callback) {
@@ -858,7 +857,7 @@ export class StreamDSL implements Observable<any> {
      * without iterator, returns a promise
      * @returns Promise{*}
      */
-  drain() {
+  drain () {
     return this.stream$.drain();
   }
 
@@ -868,7 +867,7 @@ export class StreamDSL implements Observable<any> {
      * @param throttlePeriod
      * @returns {StreamDSL}
      */
-  throttle(throttlePeriod) {
+  throttle (throttlePeriod) {
     this.stream$ = this.stream$.throttle(throttlePeriod);
     return this;
   }
@@ -878,7 +877,7 @@ export class StreamDSL implements Observable<any> {
      * @param delayTime
      * @returns {StreamDSL}
      */
-  delay(delayTime) {
+  delay (delayTime) {
     this.stream$ = this.stream$.delay(delayTime);
     return this;
   }
@@ -889,7 +888,7 @@ export class StreamDSL implements Observable<any> {
      * @param debounceTime
      * @returns {StreamDSL}
      */
-  debounce(debounceTime) {
+  debounce (debounceTime) {
     this.stream$ = this.stream$.debounce(debounceTime);
     return this;
   }
@@ -909,7 +908,7 @@ export class StreamDSL implements Observable<any> {
      * @param countFieldName
      * @returns {StreamDSL}
      */
-  countByKey(key = "key", countFieldName = "count") {
+  countByKey (key = "key", countFieldName = "count") {
     const keyCount = new KeyCount(this.storage, key, countFieldName);
     this.asyncMap(keyCount.execute.bind(keyCount));
     return this;
@@ -923,7 +922,7 @@ export class StreamDSL implements Observable<any> {
      * @param sumField
      * @returns {StreamDSL}
      */
-  sumByKey(key = "key", fieldName = "value", sumField = false) {
+  sumByKey (key = "key", fieldName = "value", sumField = false) {
     const sum = new Sum(this.storage, key, fieldName, sumField);
     this.asyncMap(sum.execute.bind(sum));
     return this;
@@ -939,7 +938,7 @@ export class StreamDSL implements Observable<any> {
      * @param minField
      * @returns {StreamDSL}
      */
-  min(fieldName = "value", minField = "min") {
+  min (fieldName = "value", minField = "min") {
     const min = new Min(this.storage, fieldName, minField);
     this.asyncMap(min.execute.bind(min));
     return this;
@@ -955,7 +954,7 @@ export class StreamDSL implements Observable<any> {
      * @param maxField
      * @returns {StreamDSL}
      */
-  max(fieldName = "value", maxField = "max") {
+  max (fieldName = "value", maxField = "max") {
     const max = new Max(this.storage, fieldName, maxField);
     this.asyncMap(max.execute.bind(max));
     return this;
@@ -974,7 +973,7 @@ export class StreamDSL implements Observable<any> {
      * and merge all child streams into a new stream
      * @private
      */
-  _join() {
+  _join () {
     this.stream$ = most.join(this.stream$);
     return this;
   }
@@ -984,7 +983,7 @@ export class StreamDSL implements Observable<any> {
      * stream with all elements from both streams
      * @param otherStream$
      */
-  _merge(otherStream$) {
+  _merge (otherStream$) {
     this.stream$ = most.merge(this.stream$, otherStream$);
     return this;
   }
@@ -997,7 +996,7 @@ export class StreamDSL implements Observable<any> {
      * @param otherStream$
      * @param combine
      */
-  _zip(otherStream$, combine) {
+  _zip (otherStream$, combine) {
     this.stream$ = this.stream$.zip(combine, otherStream$);
     return this;
   }
@@ -1011,7 +1010,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      * @private
      */
-  _combine(otherStream$, combine) {
+  _combine (otherStream$, combine) {
     this.stream$ = this.stream$.combine(combine, otherStream$);
     return this;
   }
@@ -1026,7 +1025,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      * @private
      */
-  _sample(sampleStream$, otherStream$, combine) {
+  _sample (sampleStream$, otherStream$, combine) {
     this.stream$ = sampleStream$.sample(combine, this.stream$, otherStream$);
     return this;
   }
@@ -1054,7 +1053,7 @@ export class StreamDSL implements Observable<any> {
      * @param {Object} outputKafkaConfig - optional
      * @returns {Promise.<boolean>}
      */
-  to(topic = undefined, outputPartitionsCount = 1, produceType = "send", version = 1, compressionType = 0, producerErrorCallback = null, outputKafkaConfig = null) {
+  to (topic = undefined, outputPartitionsCount = 1, produceType = "send", version = 1, compressionType = 0, producerErrorCallback = null, outputKafkaConfig = null) {
     return new Promise((resolve, reject) => {
 
       if (this.produceAsTopic) {
