@@ -1,61 +1,62 @@
-import * as assert from "assert";
-import * as proxyquire from "proxyquire";
-import KafkaFactoryStub from "../utils/KafkaFactoryStub";
+import * as KafkaFactoryModule from "../../src/lib/KafkaFactory";
+import { KafkaStreams } from '../../src/lib/KafkaStreams';
+import KafkaFactoryStub from '../utils/KafkaFactoryStub';
 
-const { KafkaStreams } = proxyquire("../../src/lib/KafkaStreams", {
-  "./KafkaFactory": { KafkaFactory: KafkaFactoryStub }
-});
+describe("WordCount UNIT", () => {
+    afterEach(() => {
+        // restore the spy created with spyOn
+        jest.restoreAllMocks();
+    });
+    it("should be able to count words", (done) => {
+        jest.spyOn(KafkaFactoryModule, 'KafkaFactory').mockImplementation(((config, batchOptions = undefined) => {
+            return new KafkaFactoryStub();
+        }) as any);
+        function etl_ValueFlatten (value) {
+            return value.toLowerCase().split(" ");
+        }
 
-describe("WordCount UNIT", function () {
+        function etl_KeyValueMapper (elements) {
+            return {
+                key: elements[0],
+                value: elements[1]
+            };
+        }
 
-  it("should be able to count words", function (done) {
+        function etl_deflate (value) {
+            return value.count;
+        }
 
-    function etl_ValueFlatten(value) {
-      return value.toLowerCase().split(" ");
-    }
+        const streams = new KafkaStreams({});
+        const factory = streams.factory;
+        const source = streams.getKStream("word-count-unit");
 
-    function etl_KeyValueMapper(elements) {
-      return {
-        key: elements[0],
-        value: elements[1]
-      };
-    }
+        source
+            .map(etl_ValueFlatten)
+            .map(etl_KeyValueMapper)
+            .countByKey("key", "count")
+            .skip(7)
+            .take(3)
+            .map(etl_deflate)
+            .to("streams-wordcount-output");
 
-    function etl_deflate(value) {
-      return value.count;
-    }
+        source.start();
 
-    const streams = new KafkaStreams({});
-    const factory = streams.factory;
-    const source = streams.getKStream("word-count-unit");
+        factory.lastConsumer.fakeIncomingMessages([
+            "if bla", "if xta", "bla 1", "if blup",
+            "blup 2", "if hihi", "bla 2", "if five",
+            "bla third", "blup second derp"
+        ]); // if = 5, bla = 3, blup = 2
 
-    source
-      .map(etl_ValueFlatten)
-      .map(etl_KeyValueMapper)
-      .countByKey("key", "count")
-      .skip(7)
-      .take(3)
-      .map(etl_deflate)
-      .to("streams-wordcount-output");
+        setTimeout(() => {
+            const messages = factory.lastProducer.producedMessages;
+            console.log(messages);
 
-    source.start();
+            expect(messages[0]).toBe(5); //if
+            expect(messages[1]).toBe(3); //bla
+            expect(messages[2]).toBe(2); //blup
 
-    factory.lastConsumer.fakeIncomingMessages([
-      "if bla", "if xta", "bla 1", "if blup",
-      "blup 2", "if hihi", "bla 2", "if five",
-      "bla third", "blup second derp"
-    ]); // if = 5, bla = 3, blup = 2
-
-    setTimeout(() => {
-      const messages = factory.lastProducer.producedMessages;
-      console.log(messages);
-
-      assert.equal(messages[0], 5); //if
-      assert.equal(messages[1], 3); //bla
-      assert.equal(messages[2], 2); //blup
-
-      streams.closeAll();
-      done();
-    }, 5);
-  });
+            streams.closeAll();
+            done();
+        }, 5);
+    });
 });
