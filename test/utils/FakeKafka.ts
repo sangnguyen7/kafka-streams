@@ -45,7 +45,7 @@ export default class FakeKafka extends JSKafkaClient {
   }
 
   //produce
-  _send (payloads: any[], cb: () => void): void {
+  _send (payloads: any[], cb: (value?: unknown) => void): void {
     payloads.forEach(payload => this.producedMessages.push(payload));
     if (cb) {
       cb();

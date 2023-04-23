@@ -43,3 +43,5 @@ certs/
 .vscode/settings.json
 
 dist
+
+coverage

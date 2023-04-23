@@ -5,7 +5,7 @@ export default class KafkaFactoryStub {
   public lastProducer: FakeKafka = null;
   public instance;
 
-  constructor() {
+  constructor () {
 
     //SINGLETON
     if (this.instance) {
@@ -19,12 +19,12 @@ export default class KafkaFactoryStub {
 
   }
 
-  getKafkaClient(topic) {
+  getKafkaClient (topic) {
     console.log("KafkaFactoryStub creating KafkaClient for " + topic);
     const kafka = new FakeKafka(topic);
     this.lastConsumer = kafka;
     this.lastProducer = kafka;
-    console.log('fks:', kafka, this);
+    // console.log('fks:', kafka, this);
     return kafka;
   }
 }

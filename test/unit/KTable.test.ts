@@ -1,88 +1,89 @@
-import * as assert from "assert";
-import * as proxyquire from "proxyquire";
-import KafkaFactoryStub from "../utils/KafkaFactoryStub";
+import * as KafkaFactoryModule from "../../src/lib/KafkaFactory";
+import { KafkaStreams } from '../../src/lib/KafkaStreams';
+import KafkaFactoryStub from '../utils/KafkaFactoryStub';
 
-const { KafkaStreams } = proxyquire("../../src/lib/KafkaStreams", {
-  "./KafkaFactory": { KafkaFactory: KafkaFactoryStub }
-});
+describe("KTable UNIT", () => {
+    afterEach(() => {
+        // restore the spy created with spyOn
+        jest.restoreAllMocks();
+    });
+    it("should be able to represent a table from a stream", (done) => {
+        jest.spyOn(KafkaFactoryModule, 'KafkaFactory').mockImplementation(((config, batchOptions = undefined) => {
+            return new KafkaFactoryStub();
+        }) as any);
+        function etl_KeyValueMapper (message) {
+            const elements = message.toLowerCase().split(" ");
+            return {
+                key: elements[0],
+                value: elements[1]
+            };
+        }
 
-describe("KTable UNIT", function () {
+        let intv = null;
+        let count = 0;
+        let hit = 0;
+        let hitCount = 0;
 
-  it("should be able to represent a table from a stream", function (done) {
+        const streams = new KafkaStreams({});
+        const factory = streams.factory;
+        const source = streams.getKTable("ktable-unit", etl_KeyValueMapper);
 
-    function etl_KeyValueMapper(message) {
-      const elements = message.toLowerCase().split(" ");
-      return {
-        key: elements[0],
-        value: elements[1]
-      };
-    }
+        source
+            .tap(_ => {
+                count++;
+            })
+            .consumeUntilCount(21, () => {
 
-    let intv = null;
-    let count = 0;
-    let hit = 0;
-    let hitCount = 0;
+                expect(count).toBe(21);
+                expect(hit).toBe(1);
+                expect(hitCount - 5 >= 0).toBe(true);
 
-    const streams = new KafkaStreams({});
-    const factory = streams.factory;
-    const source = streams.getKTable("ktable-unit", etl_KeyValueMapper);
+                const messages = factory.lastProducer.producedMessages;
+                //console.log(messages);
 
-    source
-      .tap(_ => {
-        count++;
-      })
-      .consumeUntilCount(21, () => {
+                source.getTable().then((data: any) => {
 
-        assert.equal(count, 21);
-        assert.equal(hit, 1);
-        assert.equal(hitCount - 5 >= 0, true);
+                    console.log(data);
 
-        const messages = factory.lastProducer.producedMessages;
-        //console.log(messages);
+                    expect(data.derp).toBe("7");
+                    expect(data.derpa).toBe("7");
+                    expect(data.derpb).toBe("7");
 
-        source.getTable().then((data: any)=> {
+                    const replays = {} as any;
 
-          console.log(data);
+                    source.forEach(kv => {
+                        console.log(kv);
+                        replays[kv.key] = kv.value;
+                        if (Object.keys(replays).length === 3) {
 
-          assert.equal(data.derp, 7);
-          assert.equal(data.derpa, 7);
-          assert.equal(data.derpb, 7);
+                            expect(replays.derp).toBe("7");
+                            expect(replays.derpa).toBe("7");
+                            expect(replays.derpb).toBe("7");
 
-          const replays = {} as any;
+                            streams.closeAll();
+                            clearInterval(intv);
+                            done();
+                        }
+                    });
 
-          source.forEach(kv => {
-            console.log(kv);
-            replays[kv.key] = kv.value;
-            if (Object.keys(replays).length === 3) {
+                    source.replay();
+                });
+            })
+            .atThroughput(5, () => {
+                hit++;
+                hitCount = count;
+            })
+            .tap(console.log)
+            .to("streams-wordcount-output");
 
-              assert.equal(replays.derp, 7);
-              assert.equal(replays.derpa, 7);
-              assert.equal(replays.derpb, 7);
+        source.start();
 
-              streams.closeAll();
-              clearInterval(intv);
-              done();
-            }
-          });
-
-          source.replay();
-        });
-      })
-      .atThroughput(5, () => {
-        hit++;
-        hitCount = count;
-      })
-      .tap(console.log)
-      .to("streams-wordcount-output");
-
-    source.start();
-
-    let intervalCount = 0;
-    intv = setInterval(() => {
-      intervalCount++;
-      factory.lastConsumer.fakeIncomingMessages([
-        "derpa " + intervalCount, "derp " + intervalCount, "derpb " + intervalCount
-      ]);
-    }, 2);
-  });
+        let intervalCount = 0;
+        intv = setInterval(() => {
+            intervalCount++;
+            factory.lastConsumer.fakeIncomingMessages([
+                "derpa " + intervalCount, "derp " + intervalCount, "derpb " + intervalCount
+            ]);
+        }, 2);
+    });
 });

@@ -1,12 +1,10 @@
 import { async as createSubject } from "most-subject";
-import * as lodashClone from "lodash.clone";
-import * as lodashCloneDeep from "lodash.clonedeep";
+import _ from "lodash";
 import { StreamDSL } from "./StreamDSL";
 import { messageProduceHandle } from "../messageProduceHandle";
 import { Window } from "../actions";
 
 const NOOP = () => { };
-
 /**
  * change-log representation of a stream
  */
@@ -245,10 +243,10 @@ export class KStream extends StreamDSL {
       clone$ = clone$.map((event) => {
 
         if (!cloneDeep) {
-          return lodashClone(event);
+          return _.clone(event);
         }
 
-        return lodashCloneDeep(event);
+        return _.cloneDeep(event);
       });
     }
 
