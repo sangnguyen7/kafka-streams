@@ -1,6 +1,6 @@
 {
     "name": "kafka-streams",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "description": "kafka-streams for Node.js",
     "types": "dist/types.d.ts",
     "main": "dist/index.js",
@@ -19,8 +19,8 @@
         "topicExtractor": "DEBUG=kafka-streams:mph node ./examples/topicExtractor.js",
         "obs-test": "_mocha test/unit/Observable.test.js",
         "test-unit": "jest --coverage --verbose test/unit",
-        "test-int": "_mocha --recursive --timeout 22500 --exit -R spec test/int",
-        "test-int:debug": "DEBUG=sinek:*,kafka-streams:* _mocha --recursive --timeout 22500 --exit -R spec test/int",
+        "test-int": "jest --coverage --verbose test/int",
+        "test-int:debug": "DEBUG=sinek:*,kafka-streams:* jest --coverage --verbose test/int",
         "test-int:cov": "istanbul cover _mocha -- --recursive --timeout 22500 --exit -R spec test/int/ && istanbul check-coverage --statements 60",
         "test": "npm run test-unit && npm run test-int",
         "jsdoc": "rm -r ./docs/jsdoc && jsdoc ./lib --recurse -R ./README.md -d ./docs/jsdoc",
