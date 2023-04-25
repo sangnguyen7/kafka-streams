@@ -29,4 +29,5 @@ jobs:
         run: cd kafka-setup && docker-compose up -d
       - run: npm install && npm run build
       - run: npm run test-unit
+      - run: sleep 240
       - run: npm run test-int
