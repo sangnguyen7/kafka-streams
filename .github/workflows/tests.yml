@@ -30,4 +30,5 @@ jobs:
       - run: npm install && npm run build
       - run: npm run test-unit
       - run: sleep 60
+      - run: docker ps
       - run: npm run test-int
