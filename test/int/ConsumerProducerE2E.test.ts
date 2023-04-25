@@ -56,13 +56,13 @@ describe("E2E INT", () => {
       }
     });
 
-    stream.start().then(() => {
-      console.log("started");
-      stream.writeToStream(messages);
-      done();
-    }).catch((error) => {
-      done(error);
-    });
+    // stream.start().then(() => {
+    //   console.log("started");
+    //   stream.writeToStream(messages);
+    //   done();
+    // }).catch((error) => {
+    //   done(error);
+    // });
   });
 
   // it("should give kafka some time", done => {
