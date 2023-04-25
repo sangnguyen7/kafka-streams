@@ -151,11 +151,13 @@ export class NativeKafkaClient extends KafkaClient {
 
 		//might be possible if the parent stream is build to produce messages only
 		if (!this.producer) {
+			console.log('Calling JS Producer');
 			// Sinek library has some strange null value here so we map this to any
 			this.producer = new JSProducer(config, [this.produceTopic] as any, this.producePartitionCount);
 
 			//consumer is awaiting producer
 			this.producer.on("ready", () => {
+				console.log('producer ready');
 				debug("producer ready");
 				super.emit("kafka-producer-ready", true);
 				if (readyCallback) {
