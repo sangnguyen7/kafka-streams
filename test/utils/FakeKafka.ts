@@ -1,6 +1,6 @@
-import { JSKafkaClient } from "../../src/lib/client";
+import { NativeKafkaClient } from "../../src/lib/client";
 
-export default class FakeKafka extends JSKafkaClient {
+export default class FakeKafka extends NativeKafkaClient {
 
   public producedMessages = [];
   public topic: string;
