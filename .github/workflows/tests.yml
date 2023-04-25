@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: mkdir /tmp/kafka-data && mkdir /tmp/kafka-data/data && mkdir /tmp/kafka-data/logs && chmod -R 777 /tmp/kafka-data
-      - run: ./kafka-setup/generate-certs.sh
+      # - run: ./kafka-setup/generate-certs.sh
       - name: Start Docker containers for Zookeeper, Kafka and Schema Registry
         run: cd kafka-setup && docker-compose up -d
       - run: npm install && npm run build
       - run: npm run test-unit
-      - run: sleep 240
+      - run: sleep 60
       - run: npm run test-int
