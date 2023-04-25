@@ -46,23 +46,23 @@ describe("E2E INT", () => {
 
     const stream = kafkaStreams.getKStream();
     stream.to(topic);
-    done();
-    //let count = 0;
-    // stream.createAndSetProduceHandler().on("delivered", message => {
-    //   console.log(message.value);
-    //   count++;
-    //   if (count === messages.length) {
-    //     setTimeout(done, 250);
-    //   }
-    // });
 
-    // stream.start().then(() => {
-    //   console.log("started");
-    //   //stream.writeToStream(messages);
-    //   done();
-    // }).catch((error) => {
-    //   done(error);
-    // });
+    let count = 0;
+    stream.createAndSetProduceHandler().on("delivered", message => {
+      console.log(message.value);
+      count++;
+      if (count === messages.length) {
+        setTimeout(done, 250);
+      }
+    });
+
+    stream.start().then(() => {
+      console.log("started");
+      stream.writeToStream(messages);
+      done();
+    }).catch((error) => {
+      done(error);
+    });
   });
 
   // it("should give kafka some time", done => {
