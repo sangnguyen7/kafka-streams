@@ -75,18 +75,6 @@ describe("E2E INT", () => {
 
     const stream = kafkaStreams.getKStream();
 
-    stream
-      .from(topic)
-      .mapJSONConvenience() //buffer -> json
-      .mapWrapKafkaValue() //message.value -> value
-      .map(keyValueMapperEtl)
-      .countByKey("key", "count")
-      .filter(kv => kv.count >= 2)
-      .map(kv => kv.key + " " + kv.count)
-      .tap(_ => { })
-      .wrapAsKafkaValue()
-      .to(outputTopic);
-
     let count = 0;
     stream.createAndSetProduceHandler().on("delivered", () => {
       count++;
@@ -95,7 +83,23 @@ describe("E2E INT", () => {
       }
     });
 
-    stream.start();
+    stream.start().then(() => {
+      debug("started");
+      stream
+        .from(topic)
+        .mapJSONConvenience() //buffer -> json
+        .mapWrapKafkaValue() //message.value -> value
+        .map(keyValueMapperEtl)
+        .countByKey("key", "count")
+        .filter(kv => kv.count >= 2)
+        .map(kv => kv.key + " " + kv.count)
+        .tap(_ => { })
+        .wrapAsKafkaValue()
+        .to(outputTopic);
+      done();
+    }).catch((error) => {
+      done(error);
+    });
   });
 
   // it("should give kafka some time again", done => {
