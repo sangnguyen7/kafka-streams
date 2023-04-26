@@ -1,7 +1,7 @@
 import { KafkaStreams } from "../../src/index";
 import { nativeConfig as config } from "../test-config";
 import debugFactory from "debug";
-const debug = debugFactory("test:int");
+const debug = debugFactory("kafka-streams:test:int");
 
 const keyValueMapperEtl = (message) => {
   debug(message);
