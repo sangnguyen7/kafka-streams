@@ -75,9 +75,10 @@ describe("E2E INT", () => {
 
     const stream = kafkaStreams.getKStream();
 
+
     let count = 0;
-    stream.createAndSetProduceHandler().on("delivered", (message) => {
-      debug("delivered", message);
+    stream.createAndSetProduceHandler().on("delivered", () => {
+      debug("delivered", message.value);
       count++;
       if (count === 2) {
         setTimeout(done, 250);
@@ -97,6 +98,7 @@ describe("E2E INT", () => {
         .tap(_ => { })
         .wrapAsKafkaValue()
         .to(outputTopic);
+
       done();
     }).catch((error) => {
       done(error);
