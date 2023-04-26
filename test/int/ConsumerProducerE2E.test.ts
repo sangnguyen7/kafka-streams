@@ -76,7 +76,8 @@ describe("E2E INT", () => {
     const stream = kafkaStreams.getKStream();
 
     let count = 0;
-    stream.createAndSetProduceHandler().on("delivered", () => {
+    stream.createAndSetProduceHandler().on("delivered", (message) => {
+      debug("delivered", message);
       count++;
       if (count === 2) {
         setTimeout(done, 250);
