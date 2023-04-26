@@ -255,6 +255,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   map (etl) {
+    debug('map')
     this.stream$ = this.stream$.map(etl);
     return this;
   }
@@ -336,6 +337,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   filter (pred) {
+    debug('filter');
     this.stream$ = this.stream$.filter(pred);
     return this;
   }
@@ -492,7 +494,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   mapBufferKeyToString () {
-
+    debug('mapBufferKeyToString');
     return this.map(object => {
 
       if (typeof object !== "object" || !object.key) {
@@ -522,7 +524,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   mapBufferValueToString () {
-
+    debug('mapBufferValueToString');
     return this.map(object => {
 
       if (typeof object !== "object" || !object.value) {
@@ -552,7 +554,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   mapStringValueToJSONObject () {
-
+    debug('mapStringValueToJSONObject')
     return this.map(object => {
 
       if (typeof object !== "object" || !object.value) {
@@ -584,6 +586,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   mapJSONConvenience () {
+    debug('mapJSONConvenience');
     return this
       .mapBufferKeyToString()
       .mapBufferValueToString()
@@ -597,7 +600,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   wrapAsKafkaValue (topic = undefined) {
-
+    debug('wrapAsKafkaValue');
     return this.map(any => {
       return {
         opaqueKey: null,
@@ -616,7 +619,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   mapWrapKafkaValue () {
-
+    debug('mapWrapKafkaValue')
     return this.map(message => {
 
       if (typeof message === "object" &&
@@ -909,6 +912,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   countByKey (key = "key", countFieldName = "count") {
+    debug('countByKey');
     const keyCount = new KeyCount(this.storage, key, countFieldName);
     this.asyncMap(keyCount.execute.bind(keyCount));
     return this;
