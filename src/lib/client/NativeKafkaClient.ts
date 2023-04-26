@@ -110,7 +110,7 @@ export class NativeKafkaClient extends KafkaClient {
 			//if it is not we automatically connect in stream mode
 			this.consumer.connect(!withBackPressure, streamOptions).then(() => {
 				debug("consumer ready");
-
+				console.log('consumer ready');
 				if (withBackPressure) {
 					return this.consumer.consume((message, done) => {
 						super.emit("message", message);
