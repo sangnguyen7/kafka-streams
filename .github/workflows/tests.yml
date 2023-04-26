@@ -27,9 +27,11 @@ jobs:
       # - run: ./kafka-setup/generate-certs.sh
       - name: Start Docker containers for Zookeeper, Kafka and Schema Registry
         run: cd kafka-setup && docker-compose up -d
-      - run: docker logs -f  kafka-setup_kafka_1
+
       - run: npm install && npm run build
       - run: npm run test-unit
       - run: sleep 60
+      - run: free -h && df -h
+      - run: docker logs kafka-setup_kafka_1
       - run: docker ps
       - run: npm run test-int

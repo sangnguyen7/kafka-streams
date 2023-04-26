@@ -48,7 +48,7 @@ describe("E2E INT", () => {
     stream.to(topic);
 
     let count = 0;
-    stream.createAndSetProduceHandler().on("message", message => {
+    stream.createAndSetProduceHandler().on("delivered", message => {
       console.log(message.value);
       count++;
       if (count === messages.length) {
