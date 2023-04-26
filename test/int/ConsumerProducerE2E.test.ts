@@ -65,36 +65,36 @@ describe("E2E INT", () => {
     });
   });
 
-  // it("should give kafka some time", done => {
-  //   setTimeout(done, 2500);
-  // });
+  it("should give kafka some time", done => {
+    setTimeout(done, 2500);
+  });
 
-  // it("should run complexer wordcount sample", done => {
+  it("should run complexer wordcount sample", done => {
 
-  //   const stream = kafkaStreams.getKStream();
+    const stream = kafkaStreams.getKStream();
 
-  //   stream
-  //     .from(topic)
-  //     .mapJSONConvenience() //buffer -> json
-  //     .mapWrapKafkaValue() //message.value -> value
-  //     .map(keyValueMapperEtl)
-  //     .countByKey("key", "count")
-  //     .filter(kv => kv.count >= 2)
-  //     .map(kv => kv.key + " " + kv.count)
-  //     .tap(_ => { })
-  //     .wrapAsKafkaValue()
-  //     .to(outputTopic);
+    stream
+      .from(topic)
+      .mapJSONConvenience() //buffer -> json
+      .mapWrapKafkaValue() //message.value -> value
+      .map(keyValueMapperEtl)
+      .countByKey("key", "count")
+      .filter(kv => kv.count >= 2)
+      .map(kv => kv.key + " " + kv.count)
+      .tap(_ => { })
+      .wrapAsKafkaValue()
+      .to(outputTopic);
 
-  //   let count = 0;
-  //   stream.createAndSetProduceHandler().on("delivered", () => {
-  //     count++;
-  //     if (count === 2) {
-  //       setTimeout(done, 250);
-  //     }
-  //   });
+    let count = 0;
+    stream.createAndSetProduceHandler().on("delivered", () => {
+      count++;
+      if (count === 2) {
+        setTimeout(done, 250);
+      }
+    });
 
-  //   stream.start();
-  // });
+    stream.start();
+  });
 
   // it("should give kafka some time again", done => {
   //   setTimeout(done, 2500);
