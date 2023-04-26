@@ -39,7 +39,7 @@ const hasKVStructure = message => {
 const produceTypeSelection = (produceType, kafka, compressionType, topic, partition, key, value, headers, partitionKey = null, opaqueKey = null, version = 1) => {
 
   debug("producing", produceType, topic, partition, key, partitionKey, opaqueKey, version, value);
-  console.log("producing", produceType, topic, partition, key, partitionKey, opaqueKey, version, value);
+  // console.log("producing", produceType, topic, partition, key, partitionKey, opaqueKey, version, value);
 
   //compressionType is only passed for the JS client, the native client will ignore it
   //on the other hand partitionKey, opaqueKey and partition are ignored by the JS client
@@ -131,7 +131,7 @@ export const messageProduceHandle = (kafka, message, outputTopicName, produceTyp
 
   const produceHandler = kafka.getProduceHandler();
   if (produceHandler) {
-    console.log('producing message', kafkaMessage);
+    debug('producing message', kafkaMessage);
     produceHandler.emit("produced", kafkaMessage);
   }
 

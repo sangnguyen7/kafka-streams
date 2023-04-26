@@ -3,6 +3,8 @@ import _ from "lodash";
 import { StreamDSL } from "./StreamDSL";
 import { messageProduceHandle } from "../messageProduceHandle";
 import { Window } from "../actions";
+import debugFactory from "debug";
+const debug = debugFactory("kafka-streams:kstream");
 
 const NOOP = () => { };
 /**
@@ -54,7 +56,7 @@ export class KStream extends StreamDSL {
         this._start(resolve, reject, withBackPressure);
       });
     }
-    console.log('start Kafka Stream', arguments.length);
+    debug('start Kafka Stream', arguments.length);
     return this._start(kafkaReadyCallback, kafkaErrorCallback, withBackPressure, outputKafkaConfig);
   }
 
@@ -95,7 +97,7 @@ export class KStream extends StreamDSL {
         kafkaReadyCallback();
       }
     };
-    console.log('consumer starting');
+    debug('consumer starting');
     //overwrite kafka topics
     this.kafka.overwriteTopics(this.topicName);
 
@@ -103,7 +105,7 @@ export class KStream extends StreamDSL {
     this.kafka.start(() => { onReady("consumer"); }, kafkaErrorCallback || NOOP, this.produceAsTopic, withBackPressure);
 
     if (this.produceAsTopic) {
-      console.log('setting producer');
+      debug('setting producer');
       this.kafka.setupProducer(this.outputTopicName, this.outputPartitionsCount, () => { onReady("producer"); },
         kafkaErrorCallback, outputKafkaConfig);
 

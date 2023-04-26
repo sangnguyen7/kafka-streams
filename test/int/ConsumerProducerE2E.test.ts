@@ -1,8 +1,10 @@
 import { KafkaStreams } from "../../src/index";
 import { nativeConfig as config } from "../test-config";
+import debugFactory from "debug";
+const debug = debugFactory("test:int");
 
 const keyValueMapperEtl = (message) => {
-  console.log(message);
+  debug(message);
   const elements = message.toLowerCase().split(" ");
   return {
     key: elements[0],
@@ -49,7 +51,7 @@ describe("E2E INT", () => {
 
     let count = 0;
     stream.createAndSetProduceHandler().on("delivered", message => {
-      console.log(message.value);
+      debug(message.value);
       count++;
       if (count === messages.length) {
         setTimeout(done, 250);
@@ -57,7 +59,7 @@ describe("E2E INT", () => {
     });
 
     stream.start().then(() => {
-      console.log("started");
+      debug("started");
       stream.writeToStream(messages);
       done();
     }).catch((error) => {
@@ -114,7 +116,7 @@ describe("E2E INT", () => {
   //         setTimeout(done, 100);
   //       }
   //     })
-  //     .forEach(console.log);
+  //     .forEach(debug);
 
   //   stream.start();
   // });
