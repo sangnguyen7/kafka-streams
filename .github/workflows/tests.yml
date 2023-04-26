@@ -34,4 +34,4 @@ jobs:
       - run: free -h && df -h
       - run: docker logs kafka-setup_kafka_1
       - run: docker ps
-      - run: DEBUG=kafka-streams:* npm run test-int
+      - run: DEBUG=* npm run test-int
