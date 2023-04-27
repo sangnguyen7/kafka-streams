@@ -77,7 +77,7 @@ describe("E2E INT", () => {
 
 
     let count = 0;
-    stream.createAndSetProduceHandler().on("delivered", () => {
+    stream.createAndSetProduceHandler().on("delivered", (message) => {
       debug("delivered", message.value);
       count++;
       if (count === 2) {
