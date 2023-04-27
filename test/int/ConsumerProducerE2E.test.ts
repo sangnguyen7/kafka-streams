@@ -95,13 +95,13 @@ describe("E2E INT", () => {
       }
     });
     setTimeout(() => {
-      debug('ready to start stream')
+      debug('ready to start stream');
       stream.start().then(() => {
         debug("started");
       }).catch((error) => {
         done(error);
       });
-    }, 5000);
+    }, 10000);
 
   }, 20000);
 
