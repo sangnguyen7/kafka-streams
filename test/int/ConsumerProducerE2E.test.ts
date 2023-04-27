@@ -68,8 +68,8 @@ describe("E2E INT", () => {
   });
 
   it("should give kafka some time", done => {
-    setTimeout(done, 9000);
-  }, 10000);
+    setTimeout(done, 2500);
+  });
 
   it("should run complexer wordcount sample", done => {
 
@@ -97,7 +97,7 @@ describe("E2E INT", () => {
       .to(outputTopic);
 
     stream.start();
-  });
+  }, 20000);
 
   // it("should give kafka some time again", done => {
   //   setTimeout(done, 2500);
