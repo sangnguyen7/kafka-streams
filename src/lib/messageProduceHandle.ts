@@ -73,7 +73,7 @@ const produceTypeSelection = (produceType, kafka, compressionType, topic, partit
  * @return {Promise<void>}
  */
 export const messageProduceHandle = (kafka, message, outputTopicName, produceType, compressionType, version, producerErrorCallback) => {
-
+  debug('messageProduceHandle', message, outputTopicName, produceType, compressionType, version);
   let _topic = outputTopicName;
   let _key = null;
   let _version = version;

@@ -293,6 +293,7 @@ export class StreamDSL implements Observable<any> {
      * @returns Promise{*}
      */
   forEach (eff) {
+    debug('forEach');
     return this.stream$.forEach(eff);
   }
 
