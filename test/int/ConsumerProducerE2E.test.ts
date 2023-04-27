@@ -97,7 +97,6 @@ describe("E2E INT", () => {
 
     stream.start().then(() => {
       debug("started");
-      done();
     }).catch((error) => {
       done(error);
     });
