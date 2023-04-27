@@ -1058,8 +1058,9 @@ export class StreamDSL implements Observable<any> {
      * @returns {Promise.<boolean>}
      */
   to (topic = undefined, outputPartitionsCount = 1, produceType = "send", version = 1, compressionType = 0, producerErrorCallback = null, outputKafkaConfig = null) {
+    debug('To', topic, outputPartitionsCount, produceType);
     return new Promise((resolve, reject) => {
-
+      debug('async....');
       if (this.produceAsTopic) {
         return reject(new Error(".to() has already been called on this dsl instance."));
       }
