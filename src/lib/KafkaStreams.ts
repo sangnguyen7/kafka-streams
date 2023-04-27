@@ -25,7 +25,7 @@ export class KafkaStreams extends EventEmitter {
      * @param {object} storageOptions
      * @param {boolean} disableStorageTest
      */
-  constructor(config, storageClass = null, storageOptions = {}, disableStorageTest = false) {
+  constructor (config, storageClass = null, storageOptions = {}, disableStorageTest = false) {
     super();
 
     this.config = config;
@@ -46,7 +46,7 @@ export class KafkaStreams extends EventEmitter {
     }
   }
 
-  static checkStorageClass(storageClass) {
+  static checkStorageClass (storageClass) {
 
     let test = null;
     try {
@@ -60,13 +60,13 @@ export class KafkaStreams extends EventEmitter {
     }
   }
 
-  getKafkaClient(topic) {
+  getKafkaClient (topic) {
     const client = this.factory.getKafkaClient(topic);
     this.kafkaClients.push(client);
     return client;
   }
 
-  getStorage() {
+  getStorage () {
     const storage = new this.storageClass(this.storageOptions);
     this.storages.push(storage);
     return storage;
@@ -79,8 +79,8 @@ export class KafkaStreams extends EventEmitter {
      * @param storage
      * @returns {KStream}
      */
-  getKStream(topic, storage = null) {
-
+  getKStream (topic, storage = null) {
+    debug('Get KStream');
     const kstream = new KStream(topic,
       storage || this.getStorage(),
       this.getKafkaClient(topic));
@@ -96,7 +96,7 @@ export class KafkaStreams extends EventEmitter {
      * @param storage
      * @returns {KStream}
      */
-  fromMost(stream$, storage = null) {
+  fromMost (stream$, storage = null) {
     const kstream = this.getKStream(null, storage);
     kstream.replaceInternalObservable(stream$);
     return kstream;
@@ -110,7 +110,7 @@ export class KafkaStreams extends EventEmitter {
      * @param storage
      * @returns {KTable}
      */
-  getKTable(topic, keyMapETL, storage = null) {
+  getKTable (topic, keyMapETL, storage = null) {
 
     const ktable = new KTable(topic,
       keyMapETL,
@@ -131,7 +131,7 @@ export class KafkaStreams extends EventEmitter {
      * this could result in a large object
      * @returns {Array}
      */
-  getStats() {
+  getStats () {
     return this.kafkaClients.map(kafkaClient => kafkaClient.getStats());
   }
 
@@ -141,7 +141,7 @@ export class KafkaStreams extends EventEmitter {
      * that has every been created by this factory
      * @returns {Promise}
      */
-  closeAll() {
+  closeAll () {
     return Promise.all(this.kafkaClients.map(client => {
       return new Promise(resolve => {
         client.close();
