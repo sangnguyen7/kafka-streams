@@ -73,7 +73,7 @@ describe("E2E INT", () => {
 
   it("should run complexer wordcount sample", done => {
 
-    const stream = kafkaStreams.getKStream();
+    const stream = kafkaStreams.getKStream(topic);
 
     let count = 0;
     stream.createAndSetProduceHandler().on("delivered", (message) => {
@@ -85,7 +85,7 @@ describe("E2E INT", () => {
       }
     });
     stream
-      .from(topic)
+      //.from(topic)
       .mapJSONConvenience() //buffer -> json
       .mapWrapKafkaValue() //message.value -> value
       .map(keyValueMapperEtl)
@@ -96,11 +96,7 @@ describe("E2E INT", () => {
       .wrapAsKafkaValue()
       .to(outputTopic);
 
-    stream.start().then(() => {
-      debug("started");
-    }).catch((error) => {
-      done(error);
-    });
+    stream.start();
   });
 
   // it("should give kafka some time again", done => {
