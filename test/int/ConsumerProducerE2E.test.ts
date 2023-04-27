@@ -94,12 +94,14 @@ describe("E2E INT", () => {
         setTimeout(done, 250);
       }
     });
+    setTimeout(() => {
+      stream.start().then(() => {
+        debug("started");
+      }).catch((error) => {
+        done(error);
+      });
+    }, 2500);
 
-    stream.start().then(() => {
-      debug("started");
-    }).catch((error) => {
-      done(error);
-    });
   });
 
   // it("should give kafka some time again", done => {
