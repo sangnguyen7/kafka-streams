@@ -68,7 +68,7 @@ describe("E2E INT", () => {
   });
 
   it("should give kafka some time", done => {
-    setTimeout(done, 95000);
+    setTimeout(done, 9000);
   }, 10000);
 
   it("should run complexer wordcount sample", done => {
