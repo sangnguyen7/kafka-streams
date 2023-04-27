@@ -2,7 +2,8 @@ import { EventEmitter } from "events";
 import { KafkaFactory } from "./KafkaFactory";
 import { KStream, KTable } from "./dsl";
 import { KStorage } from "./KStorage";
-
+import debugFactory from "debug";
+const debug = debugFactory("kafka-streams:KafkaStreams");
 /**
  * Stream object factory
  * inhabits EventEmitter(events)
