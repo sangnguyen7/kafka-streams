@@ -101,8 +101,12 @@ export class KStream extends StreamDSL {
     //overwrite kafka topics
     this.kafka.overwriteTopics(this.topicName);
 
-    //this.kafka.on("message", msg => super.writeToStream(msg));
-    //this.kafka.start(() => { onReady("consumer"); }, kafkaErrorCallback || NOOP, this.produceAsTopic, withBackPressure);
+    this.kafka.on("message", msg => {
+      debug('onMessage', msg)
+      super.writeToStream(msg);
+
+    });
+    this.kafka.start(() => { onReady("consumer"); }, kafkaErrorCallback || NOOP, this.produceAsTopic, withBackPressure);
 
     if (this.produceAsTopic) {
       debug('setting producer');
