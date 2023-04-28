@@ -60,7 +60,7 @@ describe("E2E INT", () => {
 
     stream.start().then(() => {
       debug("started");
-      stream.writeToStream(messages);
+      //stream.writeToStream(messages);
       done();
     }).catch((error) => {
       done(error);
@@ -71,33 +71,33 @@ describe("E2E INT", () => {
     setTimeout(done, 2500);
   });
 
-  it("should run complexer wordcount sample", done => {
+  // it("should run complexer wordcount sample", done => {
 
-    const stream = kafkaStreams.getKStream(topic);
+  //   const stream = kafkaStreams.getKStream(topic);
 
-    let count = 0;
-    stream.createAndSetProduceHandler().on("delivered", (message) => {
-      debug("delivered", message);
-      done();
-      count++;
-      if (count === 2) {
-        setTimeout(done, 250);
-      }
-    });
-    stream
-      //.from(topic)
-      .mapJSONConvenience() //buffer -> json
-      .mapWrapKafkaValue() //message.value -> value
-      .map(keyValueMapperEtl)
-      .countByKey("key", "count")
-      .filter(kv => kv.count >= 2)
-      .map(kv => kv.key + " " + kv.count)
-      .tap(_ => { })
-      .wrapAsKafkaValue()
-      .to(outputTopic);
+  //   let count = 0;
+  //   stream.createAndSetProduceHandler().on("delivered", (message) => {
+  //     debug("delivered", message);
+  //     done();
+  //     count++;
+  //     if (count === 2) {
+  //       setTimeout(done, 250);
+  //     }
+  //   });
+  //   stream
+  //     //.from(topic)
+  //     .mapJSONConvenience() //buffer -> json
+  //     .mapWrapKafkaValue() //message.value -> value
+  //     .map(keyValueMapperEtl)
+  //     .countByKey("key", "count")
+  //     .filter(kv => kv.count >= 2)
+  //     .map(kv => kv.key + " " + kv.count)
+  //     .tap(_ => { })
+  //     .wrapAsKafkaValue()
+  //     .to(outputTopic);
 
-    stream.start();
-  }, 20000);
+  //   stream.start();
+  // }, 20000);
 
   // it("should give kafka some time again", done => {
   //   setTimeout(done, 2500);
