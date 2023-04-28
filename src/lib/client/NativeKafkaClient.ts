@@ -112,11 +112,14 @@ export class NativeKafkaClient extends KafkaClient {
 				debug("consumer ready");
 				if (withBackPressure) {
 					return this.consumer.consume((message, done) => {
+						debug('[withBackPressure]Consuming message: ' + message);
 						super.emit("message", message);
 						done();
 					}, false, false, this.batchOptions);
 				} else {
+					debug('NoBackPressure');
 					this.consumer.on("message", message => {
+						debug('Consuming message: ' + message);
 						super.emit("message", message);
 					});
 					return this.consumer.consume();
