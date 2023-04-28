@@ -42,5 +42,5 @@ export const nativeConfig = {
     "auto.offset.reset": "earliest",
     "request.required.acks": 1
   },
-  batchOptions
+  // batchOptions
 };
