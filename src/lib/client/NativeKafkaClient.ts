@@ -108,7 +108,7 @@ export class NativeKafkaClient extends KafkaClient {
 
 			//if backpressure is desired, we cannot connect in streaming mode
 			//if it is not we automatically connect in stream mode
-			this.consumer.connect(!withBackPressure, streamOptions).then(() => {
+			this.consumer.connect(false, streamOptions).then(() => {
 				debug("consumer ready");
 				if (withBackPressure) {
 					debug('withBackPressure');
