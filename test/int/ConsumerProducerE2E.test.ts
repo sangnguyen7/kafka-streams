@@ -85,7 +85,7 @@ describe("E2E INT", () => {
       }
     });
     stream
-      //.from(topic)
+      .from(topic)
       .mapJSONConvenience() //buffer -> json
       .mapWrapKafkaValue() //message.value -> value
       .map(keyValueMapperEtl)
