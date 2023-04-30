@@ -88,7 +88,7 @@ export class NativeKafkaClient extends KafkaClient {
 
 		//passing batch options will always result in backpressure mode
 		if (this.batchOptions) {
-			withBackPressure = true;
+			withBackPressure = false;
 		}
 
 		kafkaErrorCallback = kafkaErrorCallback || NOOP;
