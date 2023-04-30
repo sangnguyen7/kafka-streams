@@ -102,7 +102,7 @@ export class KStream extends StreamDSL {
     this.kafka.overwriteTopics(this.topicName);
 
     this.kafka.on("message", msg => {
-      debug('onMessage', msg)
+      debug('onMessage', msg);
       super.writeToStream(msg);
 
     });

@@ -84,19 +84,21 @@ describe("E2E INT", () => {
         setTimeout(done, 250);
       }
     });
-    stream
-      .from(topic)
-      .mapJSONConvenience() //buffer -> json
-      .mapWrapKafkaValue() //message.value -> value
-      .map(keyValueMapperEtl)
-      .countByKey("key", "count")
-      .filter(kv => kv.count >= 2)
-      .map(kv => kv.key + " " + kv.count)
-      .tap(_ => { })
-      .wrapAsKafkaValue()
-      .to(outputTopic);
 
-    stream.start();
+    stream.start().then(() => {
+      debug("consumed started");
+      stream
+        .from(topic)
+        .mapJSONConvenience() //buffer -> json
+        .mapWrapKafkaValue() //message.value -> value
+        .map(keyValueMapperEtl)
+        .countByKey("key", "count")
+        .filter(kv => kv.count >= 2)
+        .map(kv => kv.key + " " + kv.count)
+        .tap(_ => { })
+        .wrapAsKafkaValue()
+        .to(outputTopic);
+    });
   }, 15000);
 
   // it("should give kafka some time again", done => {
