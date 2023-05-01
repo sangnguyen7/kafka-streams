@@ -440,7 +440,7 @@ export default class JSConsumer extends EventEmitter {
      * @returns {Promise.<*>}
      */
     consume (syncEvent = null, asString = true, asJSON = false, options: any = {}) {
-
+        this.config.logger.info("aksjdlkfjalskdjfklsjdlfjslkdjf.");
         let {
             batchSize,
             commitEveryNBatch,
