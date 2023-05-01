@@ -73,7 +73,7 @@ describe("E2E INT", () => {
 
   it("should run complexer wordcount sample", done => {
 
-    const stream = kafkaStreams.getKStream(topic);
+    const stream = kafkaStreams.getKStream();
     stream
       .from(topic)
       .mapJSONConvenience() //buffer -> json
