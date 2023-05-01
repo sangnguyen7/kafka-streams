@@ -114,6 +114,7 @@ export class KStream extends StreamDSL {
         kafkaErrorCallback, outputKafkaConfig);
 
       super.forEach(message => {
+        debug('sending...' + JSON.stringify(message));
         messageProduceHandle(
           this.kafka,
           message,
