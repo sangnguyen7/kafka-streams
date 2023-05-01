@@ -17,10 +17,6 @@ module.exports = {
       "error",
       "unix"
     ],
-    "semi": [
-      "error",
-      "always"
-    ],
     "no-console": 0,
     "no-mixed-spaces-and-tabs": ["error", "smart-tabs"]
   }

@@ -1,55 +1,55 @@
-"use strict";
-import debug from "debug";
-import EventEmitter from "events";
-import { Kafka } from "kafkajs";
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
-import murmur2Partitioner from 'murmur2-partitioner';
-import murmur from "murmurhash";
-import Metadata from "./metadata";
-import { ProducerHealth } from "./health";
-import { ProducerAnalytics } from "./analytics";
+"use strict"
+import debug from "debug"
+import EventEmitter from "events"
+import { Kafka } from "kafkajs"
+import fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
+import murmur2Partitioner from 'murmur2-partitioner'
+import murmur from "murmurhash"
+import Metadata from "./metadata"
+import { ProducerHealth } from "./health"
+import { ProducerAnalytics } from "./analytics"
 
 const MESSAGE_TYPES = {
     PUBLISH: "-published",
     UNPUBLISH: "-unpublished",
     UPDATE: "-updated"
-};
+}
 
-const MAX_PART_AGE_MS = 1e3 * 60 * 5; //5 minutes
-const MAX_PART_STORE_SIZE = 1e4;
-const DEFAULT_MURMURHASH_VERSION = "3";
+const MAX_PART_AGE_MS = 1e3 * 60 * 5 //5 minutes
+const MAX_PART_STORE_SIZE = 1e4
+const DEFAULT_MURMURHASH_VERSION = "3"
 
 const DEFAULT_LOGGER = {
     debug: debug("kafka-streams:jsproducer:debug"),
     info: debug("kafka-streams:jsproducer:info"),
     warn: debug("kafka-streams:jsproducer:warn"),
     error: debug("kafka-streams:jsproducer:error")
-};
+}
 
 /**
  * native producer wrapper for node-librdkafka
  * @extends EventEmitter
  */
 export class JSProducer extends EventEmitter {
-    kafkaClient: Kafka;
-    config: any;
-    private _health: any;
-    private _adminClient: any;
-    paused: boolean;
-    producer: any;
-    private _producerPollIntv: any;
-    defaultPartitionCount: number | string;
-    private _partitionCounts: any;
-    private _inClosing: boolean;
-    private _totalSentMessages: number;
-    private _lastProcessed: any;
-    private _analyticsOptions: any;
-    private _analyticsIntv: any;
-    private _analytics: any;
-    private _murmurHashVersion: any;
-    private _murmur: (key: any, partitionCount: any) => any;
-    private _errors: number;
+    kafkaClient: Kafka
+    config: any
+    private _health: any
+    private _adminClient: any
+    paused: boolean
+    producer: any
+    private _producerPollIntv: any
+    defaultPartitionCount: number | string
+    private _partitionCounts: any
+    private _inClosing: boolean
+    private _totalSentMessages: number
+    private _lastProcessed: any
+    private _analyticsOptions: any
+    private _analyticsIntv: any
+    private _analytics: any
+    private _murmurHashVersion: any
+    private _murmur: (key: any, partitionCount: any) => any
+    private _errors: number
 
     /**
      * creates a new producer instance
@@ -58,30 +58,33 @@ export class JSProducer extends EventEmitter {
      * @param {number|string} defaultPartitionCount  - amount of default partitions for the topics to produce to
      */
     constructor (config: any = { options: {}, health: {} }, _, defaultPartitionCount = 1) {
-        super();
+        super()
 
         if (!config) {
-            throw new Error("You are missing a config object.");
+            throw new Error("You are missing a config object.")
         }
 
         //if (!config.logger || typeof config.logger !== "object") {
-        config.logger = DEFAULT_LOGGER;
+        config = {
+            ...config,
+            logger: DEFAULT_LOGGER
+        }
         //}
 
         if (!config.options) {
-            config.options = {};
+            config.options = {}
         }
 
         if (!config.noptions) {
-            config.noptions = {};
+            config.noptions = {}
         }
 
         const brokers = config.kafkaHost ||
-            (config.noptions["metadata.broker.list"] && config.noptions["metadata.broker.list"].split(","));
-        const clientId = config.noptions["client.id"];
+            (config.noptions["metadata.broker.list"] && config.noptions["metadata.broker.list"].split(","))
+        const clientId = config.noptions["client.id"]
 
         if (!brokers || !clientId) {
-            throw new Error("You are missing a broker or group configs");
+            throw new Error("You are missing a broker or group configs")
         }
 
         if (config.noptions["security.protocol"]) {
@@ -99,45 +102,45 @@ export class JSProducer extends EventEmitter {
                     username: config.noptions["sasl.username"],
                     password: config.noptions["sasl.password"],
                 },
-            });
+            })
         } else {
-            this.kafkaClient = new Kafka({ brokers, clientId });
+            this.kafkaClient = new Kafka({ brokers, clientId })
         }
 
-        this.config = config;
-        this._health = new ProducerHealth(this, this.config.health || {});
-        this._adminClient = this.kafkaClient.admin();
+        this.config = config
+        this._health = new ProducerHealth(this, this.config.health || {})
+        this._adminClient = this.kafkaClient.admin()
 
-        this.paused = false;
-        this.producer = null;
-        this._producerPollIntv = null;
-        this.defaultPartitionCount = defaultPartitionCount;
-        this._partitionCounts = {};
-        this._inClosing = false;
-        this._totalSentMessages = 0;
-        this._lastProcessed = null;
-        this._analyticsOptions = null;
-        this._analyticsIntv = null;
-        this._analytics = null;
+        this.paused = false
+        this.producer = null
+        this._producerPollIntv = null
+        this.defaultPartitionCount = defaultPartitionCount
+        this._partitionCounts = {}
+        this._inClosing = false
+        this._totalSentMessages = 0
+        this._lastProcessed = null
+        this._analyticsOptions = null
+        this._analyticsIntv = null
+        this._analytics = null
 
-        this._murmurHashVersion = this.config.options.murmurHashVersion || DEFAULT_MURMURHASH_VERSION;
-        this.config.logger.info(`using murmur ${this._murmurHashVersion} partitioner.`);
+        this._murmurHashVersion = this.config.options.murmurHashVersion || DEFAULT_MURMURHASH_VERSION
+        this.config.logger.info(`using murmur ${this._murmurHashVersion} partitioner.`)
 
         switch (this._murmurHashVersion) {
             case "2":
-                this._murmur = (key, partitionCount) => murmur2Partitioner.partition(key, partitionCount);
-                break;
+                this._murmur = (key, partitionCount) => murmur2Partitioner.partition(key, partitionCount)
+                break
 
             case "3":
-                this._murmur = (key, partitionCount) => murmur.v3(key) % partitionCount;
-                break;
+                this._murmur = (key, partitionCount) => murmur.v3(key) % partitionCount
+                break
 
             default:
-                throw new Error(`${this._murmurHashVersion} is not a supported murmur hash version. Choose '2' or '3'.`);
+                throw new Error(`${this._murmurHashVersion} is not a supported murmur hash version. Choose '2' or '3'.`)
         }
 
-        this._errors = 0;
-        super.on("error", () => this._errors++);
+        this._errors = 0
+        super.on("error", () => this._errors++)
     }
 
     /**
@@ -148,17 +151,17 @@ export class JSProducer extends EventEmitter {
     enableAnalytics (options: any = {}) {
 
         if (this._analyticsIntv) {
-            throw new Error("analytics intervals are already running.");
+            throw new Error("analytics intervals are already running.")
         }
 
         let {
             analyticsInterval
-        } = options;
-        this._analyticsOptions = options;
+        } = options
+        this._analyticsOptions = options
 
-        analyticsInterval = analyticsInterval || 1000 * 150; // 150 sec
+        analyticsInterval = analyticsInterval || 1000 * 150 // 150 sec
 
-        this._analyticsIntv = setInterval(this._runAnalytics.bind(this), analyticsInterval);
+        this._analyticsIntv = setInterval(this._runAnalytics.bind(this), analyticsInterval)
     }
 
     /**
@@ -167,7 +170,7 @@ export class JSProducer extends EventEmitter {
     haltAnalytics () {
 
         if (this._analyticsIntv) {
-            clearInterval(this._analyticsIntv);
+            clearInterval(this._analyticsIntv)
         }
     }
 
@@ -178,78 +181,78 @@ export class JSProducer extends EventEmitter {
     async connect () {
         // eslint-disable-next-line prefer-const
         let { zkConStr, kafkaHost, logger, options, noptions, tconf
-        } = this.config;
+        } = this.config
 
         const {
             pollIntervalMs
-        } = options;
+        } = options
 
-        let conStr = null;
+        let conStr = null
 
         if (typeof kafkaHost === "string") {
-            conStr = kafkaHost;
+            conStr = kafkaHost
         }
 
         if (typeof zkConStr === "string") {
-            conStr = zkConStr;
+            conStr = zkConStr
         }
 
         if (conStr === null && !noptions) {
-            throw new Error("One of the following: zkConStr or kafkaHost must be defined.");
+            throw new Error("One of the following: zkConStr or kafkaHost must be defined.")
         }
 
         if (conStr === zkConStr) {
-            throw new Error("NProducer does not support zookeeper connection.");
+            throw new Error("NProducer does not support zookeeper connection.")
         }
 
         const config = {
             "metadata.broker.list": conStr,
             "dr_cb": true
-        };
+        }
 
-        noptions = noptions || {};
-        noptions = Object.assign({}, config, noptions);
-        logger.debug(noptions);
+        noptions = noptions || {}
+        noptions = Object.assign({}, config, noptions)
+        logger.debug(noptions)
 
         tconf = tconf ? tconf : {
             "request.required.acks": 1
-        };
-        logger.debug(tconf);
+        }
+        logger.debug(tconf)
 
-        this.producer = this.kafkaClient.producer();
-        const { CONNECT, DISCONNECT, REQUEST_TIMEOUT } = this.producer.events;
+        this.producer = this.kafkaClient.producer()
+        const { CONNECT, DISCONNECT, REQUEST_TIMEOUT } = this.producer.events
 
         this.producer.on(REQUEST_TIMEOUT, details => {
-            super.emit("error", new Error(`Request Timed out. Info ${JSON.stringify(details)}`));
-        });
+            super.emit("error", new Error(`Request Timed out. Info ${JSON.stringify(details)}`))
+        })
 
         /* ### EOF STUFF ### */
 
         this.producer.on(DISCONNECT, () => {
             if (this._inClosing) {
-                this._reset();
+                this._reset()
             }
-            logger.warn("Disconnected.");
+            logger.warn("Disconnected.")
             //auto-reconnect??? -> handled by producer.poll()
-        });
+        })
 
         this.producer.on(CONNECT, () => {
-            logger.info(`KafkaJS producer is ready.`);
-            super.emit("ready");
-        });
+            logger.info(`KafkaJS producer is ready.`)
+            super.emit("ready")
+        })
 
-        logger.debug("Connecting..");
+        logger.debug("Connecting..")
 
         try {
 
             await Promise.all([
                 this.producer.connect(),
                 this._adminClient.connect(),
-            ]);
+            ])
 
         } catch (error) {
-            super.emit("error", error);
-            throw error;
+            super.emit("error", error)
+            throw error
         }
     }
 
@@ -263,14 +266,14 @@ export class JSProducer extends EventEmitter {
     _getPartitionForKey (key, partitionCount = 1) {
 
         if (typeof key !== "string") {
-            throw new Error("key must be a string.");
+            throw new Error("key must be a string.")
         }
 
         if (typeof partitionCount !== "number") {
-            throw new Error("partitionCount must be number.");
+            throw new Error("partitionCount must be number.")
         }
 
-        return this._murmur(key, partitionCount);
+        return this._murmur(key, partitionCount)
     }
 
     /**
@@ -292,56 +295,56 @@ export class JSProducer extends EventEmitter {
         */
 
         if (!this.producer) {
-            throw new Error("You must call and await .connect() before trying to produce messages.");
+            throw new Error("You must call and await .connect() before trying to produce messages.")
         }
 
         if (this.paused) {
-            throw new Error("producer is paused.");
+            throw new Error("producer is paused.")
         }
 
         if (typeof message === "undefined" || !(typeof message === "string" || Buffer.isBuffer(message) || message === null)) {
-            throw new Error("message must be a string, an instance of Buffer or null.");
+            throw new Error("message must be a string, an instance of Buffer or null.")
         }
 
-        const key = _key ? _key : uuidv4();
+        const key = _key ? _key : uuidv4()
         if (message !== null) {
-            message = Buffer.isBuffer(message) ? message : Buffer.from(message);
+            message = Buffer.isBuffer(message) ? message : Buffer.from(message)
         }
 
-        let maxPartitions: any = 0;
+        let maxPartitions: any = 0
         //find correct max partition count
         if (this.defaultPartitionCount === "auto" && typeof _partition !== "number") { //manual check to improve performance
-            maxPartitions = await this.getPartitionCountOfTopic(topicName);
+            maxPartitions = await this.getPartitionCountOfTopic(topicName)
             if (maxPartitions === -1) {
                 throw new Error("defaultPartition set to 'auto', but was not able to resolve partition count for topic" +
-                    topicName + ", please make sure the topic exists before starting the producer in auto mode.");
+                    topicName + ", please make sure the topic exists before starting the producer in auto mode.")
             }
         } else {
-            maxPartitions = this.defaultPartitionCount;
+            maxPartitions = this.defaultPartitionCount
         }
 
-        let partition = 0;
+        let partition = 0
         //find correct partition for this key
         if (maxPartitions >= 2 && typeof _partition !== "number") { //manual check to improve performance
-            partition = this._getPartitionForKey(_partitionKey ? _partitionKey : key, maxPartitions);
+            partition = this._getPartitionForKey(_partitionKey ? _partitionKey : key, maxPartitions)
         }
 
         //if _partition (manual) is set, it always overwrites a selected partition
-        partition = typeof _partition === "number" ? _partition : partition;
+        partition = typeof _partition === "number" ? _partition : partition
 
         this.config.logger.debug(JSON.stringify({
             topicName,
             partition,
             key
-        }));
+        }))
 
-        const producedAt = Date.now();
+        const producedAt = Date.now()
 
-        this._lastProcessed = producedAt;
-        this._totalSentMessages++;
+        this._lastProcessed = producedAt
+        this._totalSentMessages++
         const acks = this.config
             && this.config.tconf &&
-            this.config.tconf["request.required.acks"] || 1;
+            this.config.tconf["request.required.acks"] || 1
 
         await this.producer.send({
             topic: topicName,
@@ -349,7 +352,7 @@ export class JSProducer extends EventEmitter {
             messages: [
                 { key: key, value: message, partition, timestamp: producedAt },
             ],
-        });
+        })
     }
 
     /**
@@ -366,26 +369,26 @@ export class JSProducer extends EventEmitter {
     async buffer (topic, identifier, payload, partition = null, version = null, partitionKey = null) {
 
         if (typeof identifier === "undefined") {
-            identifier = uuidv4();
+            identifier = uuidv4()
         }
 
         if (typeof identifier !== "string") {
-            identifier = identifier + "";
+            identifier = identifier + ""
         }
 
         if (typeof payload !== "object") {
-            throw new Error("expecting payload to be of type object.");
+            throw new Error("expecting payload to be of type object.")
         }
 
         if (typeof payload.id === "undefined") {
-            payload.id = identifier;
+            payload.id = identifier
         }
 
         if (version && typeof payload.version === "undefined") {
-            payload.version = version;
+            payload.version = version
         }
 
-        return await this.send(topic, JSON.stringify(payload), partition, identifier, partitionKey);
+        return await this.send(topic, JSON.stringify(payload), partition, identifier, partitionKey)
     }
 
     /**
@@ -405,23 +408,23 @@ export class JSProducer extends EventEmitter {
     async _sendBufferFormat (topic, identifier, _payload, version = 1, _, partitionKey = null, partition = null, messageType = "") {
 
         if (typeof identifier === "undefined") {
-            identifier = uuidv4();
+            identifier = uuidv4()
         }
 
         if (typeof identifier !== "string") {
-            identifier = identifier + "";
+            identifier = identifier + ""
         }
 
         if (typeof _payload !== "object") {
-            throw new Error("expecting payload to be of type object.");
+            throw new Error("expecting payload to be of type object.")
         }
 
         if (typeof _payload.id === "undefined") {
-            _payload.id = identifier;
+            _payload.id = identifier
         }
 
         if (version && typeof _payload.version === "undefined") {
-            _payload.version = version;
+            _payload.version = version
         }
 
         const payload = {
@@ -430,9 +433,9 @@ export class JSProducer extends EventEmitter {
             id: uuidv4(),
             time: (new Date()).toISOString(),
             type: topic + messageType
-        };
+        }
 
-        return await this.send(topic, JSON.stringify(payload), partition, identifier, partitionKey);
+        return await this.send(topic, JSON.stringify(payload), partition, identifier, partitionKey)
     }
 
     /**
@@ -440,7 +443,7 @@ export class JSProducer extends EventEmitter {
      * @alias bufferFormatPublish
      */
     bufferFormat (topic, identifier, payload, version = 1, compressionType = 0, partitionKey = null) {
-        return this.bufferFormatPublish(topic, identifier, payload, version, compressionType, partitionKey);
+        return this.bufferFormatPublish(topic, identifier, payload, version, compressionType, partitionKey)
     }
 
     /**
@@ -455,7 +458,7 @@ export class JSProducer extends EventEmitter {
      * @returns {Promise.<object>}
      */
     bufferFormatPublish (topic, identifier, _payload, version = 1, _, partitionKey = null, partition = null) {
-        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.PUBLISH);
+        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.PUBLISH)
     }
 
     /**
@@ -470,7 +473,7 @@ export class JSProducer extends EventEmitter {
      * @returns {Promise.<object>}
      */
     bufferFormatUpdate (topic, identifier, _payload, version = 1, _, partitionKey = null, partition = null) {
-        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.UPDATE);
+        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.UPDATE)
     }
 
     /**
@@ -485,7 +488,7 @@ export class JSProducer extends EventEmitter {
      * @returns {Promise.<object>}
      */
     bufferFormatUnpublish (topic, identifier, _payload, version = 1, _, partitionKey = null, partition = null) {
-        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.UNPUBLISH);
+        return this._sendBufferFormat(topic, identifier, _payload, version, _, partitionKey, partition, MESSAGE_TYPES.UNPUBLISH)
     }
 
     /**
@@ -498,24 +501,24 @@ export class JSProducer extends EventEmitter {
     tombstone (topic, key, _partition = null) {
 
         if (!key) {
-            return Promise.reject(new Error("Tombstone messages only work on a key compacted topic, please provide a key."));
+            return Promise.reject(new Error("Tombstone messages only work on a key compacted topic, please provide a key."))
         }
 
-        return this.send(topic, null, _partition, key, null);
+        return this.send(topic, null, _partition, key, null)
     }
 
     /**
      * pauses production (sends will not be queued)
      */
     pause () {
-        this.paused = true;
+        this.paused = true
     }
 
     /**
      * resumes production
      */
     resume () {
-        this.paused = false;
+        this.paused = false
     }
 
     /**
@@ -528,14 +531,14 @@ export class JSProducer extends EventEmitter {
             last: this._lastProcessed,
             isPaused: this.paused,
             totalErrors: this._errors
-        };
+        }
     }
 
     /**
      * @deprecated
      */
     refreshMetadata () {
-        throw new Error("refreshMetadata not implemented for nproducer.");
+        throw new Error("refreshMetadata not implemented for nproducer.")
     }
 
     /**
@@ -549,7 +552,7 @@ export class JSProducer extends EventEmitter {
         return new Promise((resolve, reject) => {
 
             if (!this.producer) {
-                return reject(new Error("You must call and await .connect() before trying to get metadata."));
+                return reject(new Error("You must call and await .connect() before trying to get metadata."))
             }
 
             this._adminClient.fetchTopicMetadata({
@@ -558,12 +561,12 @@ export class JSProducer extends EventEmitter {
             }, (error, raw) => {
 
                 if (error) {
-                    return reject(error);
+                    return reject(error)
                 }
 
-                resolve(new Metadata(raw[0]));
-            });
-        });
+                resolve(new Metadata(raw[0]))
+            })
+        })
     }
 
     /**
@@ -572,7 +575,7 @@ export class JSProducer extends EventEmitter {
      * @returns {Promise.<Metadata>}
      */
     getMetadata (timeout = 2500) {
-        return this.getTopicMetadata(null, timeout);
+        return this.getTopicMetadata(null, timeout)
     }
 
     /**
@@ -580,8 +583,8 @@ export class JSProducer extends EventEmitter {
      * @param {number} timeout
      */
     async getTopicList (timeout = 2500) {
-        const metadata: any = await this.getMetadata(timeout);
-        return metadata.asTopicList();
+        const metadata: any = await this.getMetadata(timeout)
+        return metadata.asTopicList()
     }
 
     /**
@@ -595,35 +598,35 @@ export class JSProducer extends EventEmitter {
     async getPartitionCountOfTopic (topic) {
 
         if (!this.producer) {
-            throw new Error("You must call and await .connect() before trying to get metadata.");
+            throw new Error("You must call and await .connect() before trying to get metadata.")
         }
 
         //prevent long running leaks..
         if (Object.keys(this._partitionCounts).length > MAX_PART_STORE_SIZE) {
-            this._partitionCounts = {};
+            this._partitionCounts = {}
         }
 
-        const now = Date.now();
+        const now = Date.now()
         if (!this._partitionCounts[topic] || this._partitionCounts[topic].requested + MAX_PART_AGE_MS < now) {
 
-            let count = -1;
+            let count = -1
             try {
-                const metadata: any = await this.getMetadata(); //prevent creation of topic, if it does not exist
-                count = metadata.getPartitionCountOfTopic(topic);
+                const metadata: any = await this.getMetadata() //prevent creation of topic, if it does not exist
+                count = metadata.getPartitionCountOfTopic(topic)
             } catch (error) {
-                super.emit("error", new Error(`Failed to get metadata for topic ${topic}, because: ${error.message}.`));
-                return -1;
+                super.emit("error", new Error(`Failed to get metadata for topic ${topic}, because: ${error.message}.`))
+                return -1
             }
 
             this._partitionCounts[topic] = {
                 requested: now,
                 count
-            };
+            }
 
-            return count;
+            return count
         }
 
-        return this._partitionCounts[topic].count;
+        return this._partitionCounts[topic].count
     }
 
     /**
@@ -631,7 +634,7 @@ export class JSProducer extends EventEmitter {
      * @returns {object}
      */
     getStoredPartitionCounts () {
-        return this._partitionCounts;
+        return this._partitionCounts
     }
 
     /**
@@ -639,13 +642,13 @@ export class JSProducer extends EventEmitter {
      * resets internal values
      */
     _reset () {
-        this._lastProcessed = null;
-        this._totalSentMessages = 0;
-        this.paused = false;
-        this._inClosing = false;
-        this._partitionCounts = {};
-        this._analytics = null;
-        this._errors = 0;
+        this._lastProcessed = null
+        this._totalSentMessages = 0
+        this.paused = false
+        this._inClosing = false
+        this._partitionCounts = {}
+        this._analytics = null
+        this._errors = 0
     }
 
     /**
@@ -654,22 +657,22 @@ export class JSProducer extends EventEmitter {
      */
     async close () {
 
-        this.haltAnalytics();
+        this.haltAnalytics()
 
         if (this.producer) {
-            this._inClosing = true;
-            clearInterval(this._producerPollIntv);
+            this._inClosing = true
+            clearInterval(this._producerPollIntv)
 
             try {
                 await Promise.all([
                     this.producer.disconnect(),
                     this._adminClient.disconnect(),
-                ]);
+                ])
             } catch (error) {
                 // Do nothing, silently closing
             }
 
-            //this.producer = null;
+            //this.producer = null
         }
     }
 
@@ -680,12 +683,12 @@ export class JSProducer extends EventEmitter {
     _runAnalytics () {
 
         if (!this._analytics) {
-            this._analytics = new ProducerAnalytics(this, this._analyticsOptions || {}, this.config.logger);
+            this._analytics = new ProducerAnalytics(this, this._analyticsOptions || {}, this.config.logger)
         }
 
         this._analytics.run()
             .then(res => super.emit("analytics", res))
-            .catch(error => super.emit("error", error));
+            .catch(error => super.emit("error", error))
     }
 
     /**
@@ -696,11 +699,11 @@ export class JSProducer extends EventEmitter {
     getAnalytics () {
 
         if (!this._analytics) {
-            super.emit("error", new Error("You have not enabled analytics on this consumer instance."));
-            return {};
+            super.emit("error", new Error("You have not enabled analytics on this consumer instance."))
+            return {}
         }
 
-        return this._analytics.getLastResult();
+        return this._analytics.getLastResult()
     }
 
     /**
@@ -708,7 +711,7 @@ export class JSProducer extends EventEmitter {
      * @returns {Promise.<object>}
      */
     checkHealth () {
-        return this._health.check();
+        return this._health.check()
     }
 }
 
