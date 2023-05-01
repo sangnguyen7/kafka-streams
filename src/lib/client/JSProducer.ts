@@ -229,11 +229,11 @@ export class JSProducer extends EventEmitter {
 
         /* ### EOF STUFF ### */
 
-        this.producer.on(DISCONNECT, () => {
+        this.producer.on(DISCONNECT, (detail) => {
             if (this._inClosing) {
                 this._reset()
             }
-            logger.warn("Disconnected.")
+            logger.warn(`Disconnected. ${JSON.stringify(detail)}`)
             //auto-reconnect??? -> handled by producer.poll()
         })
 
@@ -654,7 +654,7 @@ export class JSProducer extends EventEmitter {
      * stops poll interval if open
      */
     async close () {
-
+        this.config.logger.info("Closing connection")
         this.haltAnalytics()
 
         if (this.producer) {
