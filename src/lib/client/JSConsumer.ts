@@ -2,9 +2,9 @@ import EventEmitter from "events";
 import debug from "debug";
 import { Kafka } from "kafkajs";
 import fs from 'fs';
-import { ConsumerHealth } from "./Health";
 import { ConsumerAnalytics } from "./analytics";
 import Metadata from "./metadata";
+import { ConsumerHealth } from "./health";
 const MESSAGE_CHARSET = "utf8";
 
 const DEFAULT_LOGGER = {
