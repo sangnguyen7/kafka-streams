@@ -280,16 +280,16 @@ export default class JSConsumer extends EventEmitter {
             if (this._inClosing) {
                 this._reset();
             }
-            logger.warn("Disconnected.");
+            this.config.logger.warn("Disconnected.");
             //auto-reconnect --> handled by consumer.consume();
         });
 
         this.consumer.on(CONNECT, payload => {
-            logger.info(`KafkaJS consumer (flow) ready with group. Info: ${JSON.stringify(payload)}.`);
+            this.config.logger.info(`KafkaJS consumer (flow) ready with group. Info: ${JSON.stringify(payload)}.`);
             super.emit("ready");
         });
 
-        logger.debug("Connecting..");
+        this.config.logger.debug("Connecting..");
 
         try {
             await Promise.all([
