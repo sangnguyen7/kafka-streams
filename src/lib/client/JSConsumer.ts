@@ -237,7 +237,7 @@ export default class JSConsumer extends EventEmitter {
             throw new Error("Group need to be configured on noptions['groupId.id']")
         }
 
-        await this._connectInFlow(logger)
+        await this._connectInFlow()
     }
 
     /**
@@ -271,7 +271,9 @@ export default class JSConsumer extends EventEmitter {
      * @param {object} tconf
      * @returns {Promise.<*>}
      */
-    async _connectInFlow (logger) {
+    async _connectInFlow () {
+        this.config.logger.info("_connectInFlow")
+
         this.consumer = this.kafkaClient.consumer({ groupId: this._groupId })
         const { CONNECT, CRASH, DISCONNECT } = this.consumer.events
 
@@ -295,10 +297,8 @@ export default class JSConsumer extends EventEmitter {
         this.config.logger.debug("Connecting..")
 
         try {
-            await Promise.all([
-                this.consumer.connect(),
-                this._adminClient.connect(),
-            ])
+            await this.consumer.connect()
+            await this._adminClient.connect()
         } catch (error) {
             super.emit("error", error)
             throw error
@@ -313,7 +313,7 @@ export default class JSConsumer extends EventEmitter {
      * @returns {boolean}
      */
     async _consumerRun (syncEvent) {
-
+        this.config.logger.info("_consumerRun")
         if (!this.resume || !this.consumer) {
             return false
         }
@@ -488,9 +488,7 @@ export default class JSConsumer extends EventEmitter {
 
         if (topics && topics.length) {
             this.config.logger.info(`Subscribing to topics: ${topics.join(", ")}.`)
-            topics.forEach(async (topic) => {
-                await this.consumer.subscribe({ topic })
-            })
+            await this.consumer.subscribe({ topics })
         } else {
             this.config.logger.info("Not subscribing to any topics initially.")
         }
@@ -514,10 +512,11 @@ export default class JSConsumer extends EventEmitter {
                 }
             })
         }
-
-        await this._consumeHandler(syncEvent, {
-            manualBatching,
-        })
+        else {
+            await this._consumeHandler(syncEvent, {
+                manualBatching,
+            })
+        }
     }
 
     /**
