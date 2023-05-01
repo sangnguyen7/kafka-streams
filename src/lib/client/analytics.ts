@@ -277,7 +277,7 @@ export class ConsumerAnalytics extends Analytics {
 /**
  * outsourced analytics for nproducers
  */
-class ProducerAnalytics extends Analytics {
+export class ProducerAnalytics extends Analytics {
     private _lastRes: null;
     private _producedCount: number;
     config: any;

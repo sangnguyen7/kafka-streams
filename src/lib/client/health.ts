@@ -38,7 +38,7 @@ const MESSAGES: any = {
 /**
  * little pojso class around the check object
  */
-class Check {
+export class Check {
     status: number;
     messages: string[];
 
@@ -80,7 +80,7 @@ class Check {
 /**
  * health parent class
  */
-class Health {
+export class Health {
     client: any;
     config: any;
     STATES: any;
@@ -187,7 +187,7 @@ export class ConsumerHealth extends Health {
  * health check adapted for NProducers
  * @extends Health
  */
-class ProducerHealth extends Health {
+export class ProducerHealth extends Health {
 
     /**
      * creates a new instance
