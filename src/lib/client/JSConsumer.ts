@@ -55,7 +55,6 @@ export default class JSConsumer extends EventEmitter {
      */
     constructor (topics, config: any = { options: {}, health: {} }) {
         super()
-        this.config.logger.info(topics)
         if (!config) {
             throw new Error("You are missing a config object.")
         }
@@ -106,6 +105,7 @@ export default class JSConsumer extends EventEmitter {
         this._adminClient = this.kafkaClient.admin()
         this.topics = Array.isArray(topics) ? topics : [topics]
         this.config = config
+        this.config.logger.info(topics)
         this._health = new ConsumerHealth(this, this.config.health || {})
 
         this.consumer = null
