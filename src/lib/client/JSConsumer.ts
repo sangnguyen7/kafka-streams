@@ -179,10 +179,10 @@ export default class JSConsumer extends EventEmitter {
      * @param {object} opts - optional, options asString, asJSON (booleans)
      * @returns {Promise.<*>}
      */
-    connect (asStream = false, opts = {}) {
+    async connect (asStream = false, opts = {}): Promise<void> {
 
         if (asStream) {
-            return Promise.reject(new Error("JSConsumer does not support streaming mode."))
+            throw new Error("JSConsumer does not support streaming mode.")
         }
 
         // eslint-disable-next-line prefer-const
@@ -199,11 +199,11 @@ export default class JSConsumer extends EventEmitter {
         }
 
         if (conStr === null && !noptions) {
-            return Promise.reject(new Error("One of the following: zkConStr or kafkaHost must be defined."))
+            throw new Error("One of the following: zkConStr or kafkaHost must be defined.")
         }
 
         if (conStr === zkConStr) {
-            return Promise.reject(new Error("NProducer does not support zookeeper connection."))
+            throw new Error("NProducer does not support zookeeper connection.")
         }
 
         const config = {
@@ -218,7 +218,7 @@ export default class JSConsumer extends EventEmitter {
 
         if (noptions && noptions["offset_commit_cb"]) {
             if (typeof noptions["offset_commit_cb"] !== "function") {
-                return Promise.reject(new Error("offset_commit_cb must be a function."))
+                throw new Error("offset_commit_cb must be a function.")
             }
             this._extCommitCallback = noptions["offset_commit_cb"]
         }
@@ -234,10 +234,10 @@ export default class JSConsumer extends EventEmitter {
         this._groupId = noptions["group.id"]
 
         if (!this._groupId) {
-            return Promise.reject(new Error("Group need to be configured on noptions['groupId.id']"))
+            throw new Error("Group need to be configured on noptions['groupId.id']")
         }
 
-        return this._connectInFlow(logger)
+        await this._connectInFlow(logger)
     }
 
     /**
@@ -312,13 +312,13 @@ export default class JSConsumer extends EventEmitter {
      * read a certain size of messages from the broker
      * @returns {boolean}
      */
-    _consumerRun (syncEvent) {
+    async _consumerRun (syncEvent) {
 
         if (!this.resume || !this.consumer) {
             return false
         }
 
-        this.consumer.run({
+        await this.consumer.run({
             eachBatchAutoResolve: false,
             eachBatch: async ({ batch, uncommittedOffsets, resolveOffset, heartbeat, isRunning, isStale }) => {
 
@@ -423,7 +423,7 @@ export default class JSConsumer extends EventEmitter {
         }
 
         this.config.logger.info("Batching manually..")
-        this._consumerRun(syncEvent)
+        await this._consumerRun(syncEvent)
     }
 
     /**
@@ -441,7 +441,7 @@ export default class JSConsumer extends EventEmitter {
      * @param {object} options - optional object containing options for 1:n mode:
      * @returns {Promise.<*>}
      */
-    consume (syncEvent = null, asString = true, asJSON = false, options: any = {}) {
+    async consume (syncEvent = null, asString = true, asJSON = false, options: any = {}) {
 
         let {
             batchSize,
@@ -465,19 +465,19 @@ export default class JSConsumer extends EventEmitter {
         this._asJSON = asJSON
 
         if (!this.consumer) {
-            return Promise.reject(new Error("You must call and await .connect() before trying to consume messages."))
+            throw new Error("You must call and await .connect() before trying to consume messages.")
         }
 
         if (syncEvent && this._asStream) {
-            return Promise.reject(new Error("Usage of syncEvent is not permitted in streaming mode."))
+            throw new Error("Usage of syncEvent is not permitted in streaming mode.")
         }
 
         if (this._asStream) {
-            return Promise.reject(new Error("Calling .consume() is not required in streaming mode."))
+            throw new Error("Calling .consume() is not required in streaming mode.")
         }
 
         if (sortedManualBatch && !manualBatching) {
-            return Promise.reject(new Error("manualBatching batch option must be enabled, if you enable sortedManualBatch batch option."))
+            throw new Error("manualBatching batch option must be enabled, if you enable sortedManualBatch batch option.")
         }
 
         if (this.config && this.config.logger) {
@@ -496,7 +496,7 @@ export default class JSConsumer extends EventEmitter {
         }
 
         if (!syncEvent) {
-            return this.consumer.run({
+            await this.consumer.run({
                 eachMessage: async ({ message }) => {
 
                     this.config.logger.debug(message)
@@ -515,7 +515,7 @@ export default class JSConsumer extends EventEmitter {
             })
         }
 
-        return this._consumeHandler(syncEvent, {
+        await this._consumeHandler(syncEvent, {
             manualBatching,
         })
     }

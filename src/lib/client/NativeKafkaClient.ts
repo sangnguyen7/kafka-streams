@@ -101,7 +101,7 @@ export class NativeKafkaClient extends KafkaClient {
 		this.consumer.on("error", kafkaErrorCallback);
 
 		//consumer has to wait for producer
-		super.once("kafka-producer-ready", () => {
+		super.once("kafka-producer-ready", async () => {
 
 			const streamOptions = {
 				asString: false,
@@ -110,11 +110,12 @@ export class NativeKafkaClient extends KafkaClient {
 
 			//if backpressure is desired, we cannot connect in streaming mode
 			//if it is not we automatically connect in stream mode
-			this.consumer.connect(false, streamOptions).then(() => {
+			try {
+				await this.consumer.connect(false, streamOptions)
 				debug("consumer ready");
 				if (withBackPressure) {
 					debug('withBackPressure');
-					return this.consumer.consume((message, done) => {
+					await this.consumer.consume((message, done) => {
 						debug('[withBackPressure]Consuming message: ' + message);
 						super.emit("message", message);
 						done();
@@ -125,9 +126,11 @@ export class NativeKafkaClient extends KafkaClient {
 						debug('Consuming message: ' + message);
 						super.emit("message", message);
 					});
-					return this.consumer.consume();
+					await this.consumer.consume();
 				}
-			}).catch(e => kafkaErrorCallback(e));
+			} catch (error) {
+				kafkaErrorCallback(error)
+			}
 		});
 
 		if (!withProducer) {
