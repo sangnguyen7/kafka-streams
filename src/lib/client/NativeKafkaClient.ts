@@ -148,7 +148,7 @@ export class NativeKafkaClient extends KafkaClient {
 	 * @param kafkaErrorCallback
 	 * @param outputKafkaConfig
 	 */
-	setupProducer (produceTopic, partitions = 1, readyCallback = null, kafkaErrorCallback = null, outputKafkaConfig = null) {
+	async setupProducer (produceTopic, partitions = 1, readyCallback = null, kafkaErrorCallback = null, outputKafkaConfig = null) {
 
 		this.produceTopic = produceTopic || this.produceTopic;
 		this.producePartitionCount = partitions;
@@ -172,7 +172,11 @@ export class NativeKafkaClient extends KafkaClient {
 			});
 
 			this.producer.on("error", kafkaErrorCallback);
-			this.producer.connect().catch(e => kafkaErrorCallback(e));
+			try {
+				await this.producer.connect()
+			} catch (error) {
+				kafkaErrorCallback(error)
+			}
 		}
 	}
 
@@ -191,13 +195,13 @@ export class NativeKafkaClient extends KafkaClient {
 	 * @param {array} headers - optional array with message headers (key/value objects)
 	 * @returns {Promise<void>}
 	 */
-	send (topicName, message, partition = null, key = null, partitionKey = null, opaqueKey = null, headers = null) {
+	async send (topicName, message, partition = null, key = null, partitionKey = null, opaqueKey = null, headers = null) {
 
 		if (!this.producer) {
-			return Promise.reject("producer is not yet setup.");
+			throw new Error("producer is not yet setup.");
 		}
 
-		return this.producer.send(topicName, message, partition, key, partitionKey, headers);
+		return await this.producer.send(topicName, message, partition, key, partitionKey, headers);
 	}
 
 	/**

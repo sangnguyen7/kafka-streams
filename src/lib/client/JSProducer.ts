@@ -223,6 +223,7 @@ export class JSProducer extends EventEmitter {
         const { CONNECT, DISCONNECT, REQUEST_TIMEOUT } = this.producer.events
 
         this.producer.on(REQUEST_TIMEOUT, details => {
+            logger.warn(REQUEST_TIMEOUT)
             super.emit("error", new Error(`Request Timed out. Info ${JSON.stringify(details)}`))
         })
 
@@ -244,11 +245,8 @@ export class JSProducer extends EventEmitter {
         logger.debug("Connecting..")
 
         try {
-
-            await Promise.all([
-                this.producer.connect(),
-                this._adminClient.connect(),
-            ])
+            await this.producer.connect()
+            await this._adminClient.connect()
 
         } catch (error) {
             super.emit("error", error)
