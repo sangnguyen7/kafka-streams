@@ -36,11 +36,11 @@ describe("E2E INT", () => {
     "12x3"
   ];
 
-  beforeEach(() => {
+  beforeAll(() => {
     kafkaStreams = new KafkaStreams(config);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await kafkaStreams.closeAll();
   });
 

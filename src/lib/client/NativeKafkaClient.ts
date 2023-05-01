@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import uuid from "uuid";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-import { JSConsumer, JSProducer } from "sinek";
+import { JSProducer } from "sinek";
 import debugFactory from "debug";
 const debug = debugFactory("kafka-streams:nativeclient");
 import { KafkaClient } from "./KafkaClient";
+import JSConsumer from "./JSConsumer";
 
 const NOOP = () => { };
 

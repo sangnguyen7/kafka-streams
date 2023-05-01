@@ -63,6 +63,7 @@
     "homepage": "https://github.com/sangnguyen7/kafka-streams#readme",
     "dependencies": {
         "debug": "^4.3.4",
+        "kafkajs": "^2.2.4",
         "lodash": "^4.17.21",
         "most": "1.7.3",
         "most-subject": "5.3.0",
