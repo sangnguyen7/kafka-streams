@@ -279,6 +279,7 @@ export default class JSConsumer extends EventEmitter {
         const { CONNECT, CRASH, DISCONNECT } = this.consumer.events
 
         this.consumer.on(CRASH, error => {
+            this.config.logger.error(CRASH)
             super.emit("error", error)
         })
 
@@ -301,6 +302,7 @@ export default class JSConsumer extends EventEmitter {
             await this.consumer.connect()
             await this._adminClient.connect()
         } catch (error) {
+            this.config.logger.error(error)
             super.emit("error", error)
             throw error
         }
@@ -495,6 +497,7 @@ export default class JSConsumer extends EventEmitter {
         }
 
         if (!syncEvent) {
+            this.config.logger.info("Run consume message without syncEvent")
             await this.consumer.run({
                 eachMessage: async ({ message }) => {
 
