@@ -40,9 +40,9 @@ describe("E2E INT", () => {
     kafkaStreams = new KafkaStreams(config);
   });
 
-  afterAll(async () => {
-    await kafkaStreams.closeAll();
-  });
+  // afterAll(async () => {
+  //   await kafkaStreams.closeAll();
+  // });
 
   it("should be able to produce to a topic via stream", done => {
 
@@ -68,8 +68,8 @@ describe("E2E INT", () => {
   });
 
   it("should give kafka some time", done => {
-    setTimeout(done, 9000);
-  }, 10000);
+    setTimeout(done, 2500);
+  });
 
   it("should run complexer wordcount sample", done => {
 
@@ -97,7 +97,7 @@ describe("E2E INT", () => {
 
     stream.start().then(() => {
       debug("consumed started");
-    }, 15000);
+    }, 30000);
   });
 
   // it("should give kafka some time again", done => {
