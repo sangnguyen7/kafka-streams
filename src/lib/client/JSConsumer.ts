@@ -8,10 +8,10 @@ import { ConsumerHealth } from "./health";
 const MESSAGE_CHARSET = "utf8";
 
 const DEFAULT_LOGGER = {
-    debug: debug("sinek:jsconsumer:debug"),
-    info: debug("sinek:jsconsumer:info"),
-    warn: debug("sinek:jsconsumer:warn"),
-    error: debug("sinek:jsconsumer:error")
+    debug: debug("kafka-streams:jsconsumer:debug"),
+    info: debug("kafka-streams:jsconsumer:info"),
+    warn: debug("kafka-streams:jsconsumer:warn"),
+    error: debug("kafka-streams:jsconsumer:error")
 };
 
 export default class JSConsumer extends EventEmitter {
@@ -55,7 +55,6 @@ export default class JSConsumer extends EventEmitter {
      */
     constructor (topics, config: any = { options: {}, health: {} }) {
         super();
-        console.log(config);
         if (!config) {
             throw new Error("You are missing a config object.");
         }
@@ -440,7 +439,7 @@ export default class JSConsumer extends EventEmitter {
      * @returns {Promise.<*>}
      */
     consume (syncEvent = null, asString = true, asJSON = false, options: any = {}) {
-        console.info("aksjdlkfjalskdjfklsjdlfjslkdjf.");
+
         let {
             batchSize,
             commitEveryNBatch,

@@ -21,10 +21,10 @@ const MAX_PART_STORE_SIZE = 1e4;
 const DEFAULT_MURMURHASH_VERSION = "3";
 
 const DEFAULT_LOGGER = {
-    debug: debug("sinek:jsproducer:debug"),
-    info: debug("sinek:jsproducer:info"),
-    warn: debug("sinek:jsproducer:warn"),
-    error: debug("sinek:jsproducer:error")
+    debug: debug("kafka-streams:jsproducer:debug"),
+    info: debug("kafka-streams:jsproducer:info"),
+    warn: debug("kafka-streams:jsproducer:warn"),
+    error: debug("kafka-streams:jsproducer:error")
 };
 
 /**
