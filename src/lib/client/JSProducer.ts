@@ -64,9 +64,9 @@ export class JSProducer extends EventEmitter {
             throw new Error("You are missing a config object.");
         }
 
-        if (!config.logger || typeof config.logger !== "object") {
-            config.logger = DEFAULT_LOGGER;
-        }
+        //if (!config.logger || typeof config.logger !== "object") {
+        config.logger = DEFAULT_LOGGER;
+        //}
 
         if (!config.options) {
             config.options = {};

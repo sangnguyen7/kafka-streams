@@ -59,9 +59,9 @@ export default class JSConsumer extends EventEmitter {
             throw new Error("You are missing a config object.");
         }
 
-        if (!config.logger || typeof config.logger !== "object") {
-            config.logger = DEFAULT_LOGGER;
-        }
+        //if (!config.logger || typeof config.logger !== "object") {
+        config.logger = DEFAULT_LOGGER;
+        // }
 
         if (!config.options) {
             config.options = {};
@@ -285,7 +285,7 @@ export default class JSConsumer extends EventEmitter {
         });
 
         this.consumer.on(CONNECT, payload => {
-            logger.info(`KafkaJS consumer (flow) ready with group. Info: ${payload}.`);
+            logger.info(`KafkaJS consumer (flow) ready with group. Info: ${JSON.stringify(payload)}.`);
             super.emit("ready");
         });
 
