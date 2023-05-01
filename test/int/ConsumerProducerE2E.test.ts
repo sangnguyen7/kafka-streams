@@ -98,7 +98,7 @@ describe("E2E INT", () => {
     stream.start().then(() => {
       debug("consumed started");
     });
-  }, 120000);
+  }, 60000);
 
   // it("should give kafka some time again", done => {
   //   setTimeout(done, 2500);
