@@ -55,7 +55,7 @@ export default class JSConsumer extends EventEmitter {
      */
     constructor (topics, config: any = { options: {}, health: {} }) {
         super();
-
+        console.log(config);
         if (!config) {
             throw new Error("You are missing a config object.");
         }

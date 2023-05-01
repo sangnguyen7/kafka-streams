@@ -31,7 +31,7 @@ jobs:
       - run: npm install && npm run build
       #- run: npm run test-unit
       - run: sleep 60
-      - run: free -h && df -h
-      - run: docker logs kafka-setup_kafka_1
-      - run: docker ps
+      #- run: free -h && df -h
+      #- run: docker logs kafka-setup_kafka_1
+      #- run: docker ps
       - run: DEBUG=kafka-streams:* npm run test-int
