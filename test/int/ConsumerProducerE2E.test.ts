@@ -38,6 +38,7 @@ describe("E2E INT", () => {
 
   beforeAll(() => {
     kafkaStreams = new KafkaStreams(config);
+    const stream = kafkaStreams.getKStream();
   });
 
   // afterAll(async () => {
@@ -46,7 +47,7 @@ describe("E2E INT", () => {
 
   it("should be able to produce to a topic via stream", done => {
 
-    const stream = kafkaStreams.getKStream();
+
     stream.to(topic);
 
     let count = 0;
@@ -102,9 +103,9 @@ describe("E2E INT", () => {
   //   setTimeout(done, 2500);
   // });
 
-  it("should be able to consume produced wordcount results", done => {
+  it("should be able to consume produced wordcount results", () => {
 
-    const stream = kafkaStreams.getKStream();
+    //const stream = kafkaStreams.getKStream();
 
     // let count = 0;
     stream
