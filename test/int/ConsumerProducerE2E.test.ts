@@ -68,7 +68,7 @@ describe("E2E INT", () => {
   });
 
   it("should give kafka some time", done => {
-    setTimeout(done, 2500);
+    setTimeout(done, 3500);
   });
 
   // it("should run complexer wordcount sample", done => {
@@ -102,7 +102,7 @@ describe("E2E INT", () => {
   //   setTimeout(done, 2500);
   // });
 
-  it("should be able to consume produced wordcount results", () => {
+  it("should be able to consume produced wordcount results", (done) => {
 
     const stream = kafkaStreams.getKStream();
 
@@ -118,6 +118,7 @@ describe("E2E INT", () => {
       // })
       .forEach((message) => {
         debug('stream foreach ', message);
+        done();
       });
 
     stream.start();
