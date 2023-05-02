@@ -24,6 +24,7 @@ describe("E2E INT", () => {
 
   const topic = "my-input-topic";
   const outputTopic = "my-output-topic";
+  let stream = null
 
   const messages = [
     "bla",
@@ -38,7 +39,7 @@ describe("E2E INT", () => {
 
   beforeAll(() => {
     kafkaStreams = new KafkaStreams(config);
-    const stream = kafkaStreams.getKStream();
+    stream = kafkaStreams.getKStream();
   });
 
   // afterAll(async () => {
@@ -46,7 +47,6 @@ describe("E2E INT", () => {
   // });
 
   it("should be able to produce to a topic via stream", done => {
-
 
     stream.to(topic);
 
