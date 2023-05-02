@@ -519,6 +519,7 @@ export default class JSConsumer extends EventEmitter {
             })
         }
         else {
+            this.config.logger.info("Run consume message with syncEvent")
             await this._consumeHandler(syncEvent, {
                 manualBatching,
             })
