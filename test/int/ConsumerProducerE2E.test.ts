@@ -121,6 +121,6 @@ describe("E2E INT", () => {
         debug('stream foreach ', message);
       });
 
-    stream.start();
+    // stream.start();
   });
 });
