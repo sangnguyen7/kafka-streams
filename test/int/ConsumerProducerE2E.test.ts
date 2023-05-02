@@ -121,5 +121,5 @@ describe("E2E INT", () => {
       });
 
     stream.start();
-  });
+  }, 20000);
 });

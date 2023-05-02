@@ -502,7 +502,7 @@ export default class JSConsumer extends EventEmitter {
                 this.consumer.run({
                     eachMessage: async ({ message }) => {
 
-                        this.config.logger.debug(message)
+                        this.config.logger.debug('each message: ', message)
 
                         this._totalIncomingMessages++
                         this._lastReceived = Date.now()
