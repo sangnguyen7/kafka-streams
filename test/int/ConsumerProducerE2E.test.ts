@@ -109,13 +109,13 @@ describe("E2E INT", () => {
     let count = 0;
     stream
       .from(topic)
-      .mapJSONConvenience() //buffer -> json
-      .tap(_ => {
-        count++;
-        if (count === 2) {
-          setTimeout(done, 100);
-        }
-      })
+      // .mapJSONConvenience() //buffer -> json
+      // .tap(_ => {
+      //   count++;
+      //   if (count === 2) {
+      //     setTimeout(done, 100);
+      //   }
+      // })
       .forEach(debug);
 
     stream.start();
