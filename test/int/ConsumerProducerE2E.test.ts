@@ -24,7 +24,6 @@ describe("E2E INT", () => {
 
   const topic = "my-input-topic";
   const outputTopic = "my-output-topic";
-  let stream = null
 
   const messages = [
     "bla",
@@ -39,7 +38,6 @@ describe("E2E INT", () => {
 
   beforeAll(() => {
     kafkaStreams = new KafkaStreams(config);
-    stream = kafkaStreams.getKStream();
   });
 
   // afterAll(async () => {
@@ -47,6 +45,7 @@ describe("E2E INT", () => {
   // });
 
   it("should be able to produce to a topic via stream", done => {
+
 
     stream.to(topic);
 
@@ -105,7 +104,7 @@ describe("E2E INT", () => {
 
   it("should be able to consume produced wordcount results", () => {
 
-    //const stream = kafkaStreams.getKStream();
+    const stream = kafkaStreams.getKStream();
 
     // let count = 0;
     stream
@@ -121,6 +120,6 @@ describe("E2E INT", () => {
         debug('stream foreach ', message);
       });
 
-    // stream.start();
+    stream.start();
   });
 });
