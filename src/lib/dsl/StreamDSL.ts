@@ -221,7 +221,7 @@ export class StreamDSL implements Observable<any> {
      * @returns {StreamDSL}
      */
   from (topicName) {
-
+    debug('from ', topicName)
     if (!Array.isArray(topicName)) {
       topicName = [topicName];
     }

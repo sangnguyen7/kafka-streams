@@ -6,7 +6,7 @@ services:
       - 2181:2181
     restart: unless-stopped
   kafka:
-    image: wurstmeister/kafka:2.13-2.6.3
+    image: wurstmeister/kafka:1.1.0
     ports:
       - "9092:9092"
     environment:

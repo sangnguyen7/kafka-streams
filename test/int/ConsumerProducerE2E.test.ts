@@ -106,7 +106,7 @@ describe("E2E INT", () => {
 
     const stream = kafkaStreams.getKStream();
 
-    let count = 0;
+    // let count = 0;
     stream
       .from(topic)
       // .mapJSONConvenience() //buffer -> json
@@ -116,7 +116,9 @@ describe("E2E INT", () => {
       //     setTimeout(done, 100);
       //   }
       // })
-      .forEach(debug);
+      .forEach((message) => {
+        debug('stream foreach ', message);
+      });
 
     stream.start();
   });
