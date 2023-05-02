@@ -498,22 +498,24 @@ export default class JSConsumer extends EventEmitter {
 
         if (!syncEvent) {
             this.config.logger.info("Run consume message without syncEvent")
-            await this.consumer.run({
-                eachMessage: async ({ message }) => {
+            await new Promise<void>((resolve) => {
+                this.consumer.run({
+                    eachMessage: async ({ message }) => {
 
-                    this.config.logger.debug(message)
+                        this.config.logger.debug(message)
 
-                    this._totalIncomingMessages++
-                    this._lastReceived = Date.now()
-                    message.value = this._convertMessageValue(message.value, asString, asJSON)
+                        this._totalIncomingMessages++
+                        this._lastReceived = Date.now()
+                        message.value = this._convertMessageValue(message.value, asString, asJSON)
 
-                    if (!this._firstMessageConsumed) {
-                        this._firstMessageConsumed = true
-                        super.emit("first-drain-message", message)
+                        if (!this._firstMessageConsumed) {
+                            this._firstMessageConsumed = true
+                            super.emit("first-drain-message", message)
+                        }
+                        super.emit("message", message)
+                        resolve()
                     }
-
-                    super.emit("message", message)
-                }
+                })
             })
         }
         else {

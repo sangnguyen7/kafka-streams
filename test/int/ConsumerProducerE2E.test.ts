@@ -40,9 +40,9 @@ describe("E2E INT", () => {
     kafkaStreams = new KafkaStreams(config);
   });
 
-  // afterAll(async () => {
-  //   await kafkaStreams.closeAll();
-  // });
+  afterAll(async () => {
+    await kafkaStreams.closeAll();
+  });
 
   it("should be able to produce to a topic via stream", done => {
 
